@@ -6,6 +6,8 @@
  ** @user tashiro                       **
  *****************************************/
 
+use OBX\Sms\SmsSender;
+
 if (!CModule::IncludeModule("iblock")) {
 	return false;
 }
@@ -34,12 +36,11 @@ if (!CModule::IncludeModule("obx.core")) {
 CModule::AddAutoloadClasses(
 	"obx.sms",
 	array(
-	'OBX_SmsSender' => 'classes/SmsSender.php'
-	,'OBX_SmsSettings' => 'classes/SmsSettings.php'
+	'OBX\Sms\SmsSender' => 'classes/SmsSender.php'
+	,'OBX\Sms\SmsSettings' => 'classes/SmsSettings.php'
 	)
 );
 /*
  * Регистрация всех провайдеров в папке ./providers/
  */
-OBX_SmsSender::includeProviders();
-?>
+SmsSender::includeProviders();

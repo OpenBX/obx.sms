@@ -4,10 +4,10 @@ $APPLICATION->SetPageProperty("__hide_footer", "Y");
 if (!CModule::IncludeModule("obx.sms"))
 	die();
 
-OBX_Tools::PrintBXError("");
-$object = OBX_SmsSender::factory("LETSADS");
+$object = \OBX\Sms\SmsSender::factory("LETSADS");
 wd($object, 'providerObject');
-$result = $object->send("79135295396","test message");
+$result = $object->send("79135591313","test message");
+//$result = $object->send("79135295396","test message");
 //wd($object->requestBalance(),"Balance");
 wd($result,"result");
 

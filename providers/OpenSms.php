@@ -4,8 +4,9 @@
  ** @vendor A68 Studio             **
  ** @mailto info@a-68.ru           **
  ************************************/
+use OBX\Sms\SmsSender;
 
-class OBX_OpenSms extends OBX_SmsSender {
+class OpenSms extends SmsSender {
 	protected $PROVIDER_ID = "BASESMS";
 	protected $PROVIDER_NAME = "Базовый провайдер";
 	protected $PROVIDER_DESCRIPTION = "Dummy provider class <a href='javascript:void(0)'>test link</a>";
@@ -101,7 +102,7 @@ class OBX_OpenSms extends OBX_SmsSender {
 	}
 
 	public function getStatus($ids) {
-		$xml = new SimpleXMLElement("<getStatus></getStatus>");
+		$xml = new \SimpleXMLElement("<getStatus></getStatus>");
 		$this->addAuth($xml);
 		if (is_array($ids)) {
 			foreach ($ids as $i => $id) {
@@ -113,7 +114,7 @@ class OBX_OpenSms extends OBX_SmsSender {
 		$response = $this->doSend($xml);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xmlRes = new SimpleXMLElement($response);
+			$xmlRes = new \SimpleXMLElement($response);
 			foreach ($xmlRes->sms as $tmp) {
 				$tmpResult = array();
 				$tmpResult['id'] = (string)$tmp['id'];
@@ -138,12 +139,12 @@ class OBX_OpenSms extends OBX_SmsSender {
 	}
 
 	public function getBalance() {
-		$xml = new SimpleXMLElement("<getBalance></getBalance>");
+		$xml = new \SimpleXMLElement("<getBalance></getBalance>");
 		$this->addAuth($xml);
 		$response = $this->doSend($xml);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xmlResult = new SimpleXMLElement($response);
+			$xmlResult = new \SimpleXMLElement($response);
 			$result['money'] = (double)$xmlResult->money;
 			$result['credits'] = (double)$xmlResult->credits;
 			$result['holdMoney'] = (double)$xmlResult->holdMoney;
@@ -156,7 +157,7 @@ class OBX_OpenSms extends OBX_SmsSender {
 	}
 
 	public function sendEx($from, $to, $message) {
-		$xmlResult = new SimpleXMLElement("<sendSms></sendSms>");
+		$xmlResult = new \SimpleXMLElement("<sendSms></sendSms>");
 		$this->addAuth($xmlResult);
 
 		$xmlResult->from = $from;
@@ -175,7 +176,7 @@ class OBX_OpenSms extends OBX_SmsSender {
 		$response = $this->doSend($xmlResult);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xml = new SimpleXMLElement($response);
+			$xml = new \SimpleXMLElement($response);
 			$result['count'] = (int)$xml->count;
 			$result['data'] = array();
 			foreach ($xml->to as $tmp) {
@@ -207,7 +208,7 @@ class OBX_OpenSms extends OBX_SmsSender {
 
 	private function doSend($xml) {
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, OBX_KompeitoSms::ADDR);
+		curl_setopt($ch, CURLOPT_URL, self::ADDR);
 		curl_setopt($ch, CURLOPT_FAILONERROR, 1);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

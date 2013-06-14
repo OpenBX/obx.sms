@@ -5,7 +5,9 @@
  ** @mailto info@a-68.ru           **
  ************************************/
 
-class OBX_SmsKontakt extends OBX_SmsSender {
+use OBX\Sms\SmsSender;
+
+class SmsKontakt extends SmsSender {
 
 	/*
 	 * Объявление провайдера
@@ -23,7 +25,7 @@ class OBX_SmsKontakt extends OBX_SmsSender {
 		"USER_PHONE" => array(
 			"NAME" => "Номер телефона в формате 9xxxxxxxxx",
 			"TYPE" => "TEXT",
-			"VALUE" => "9135295396"
+			"VALUE" => "9135591313"
 		),
 		"API_KEY" => array(
 			"NAME" => "API KEY (указан на сайте в личном кабинете)",
@@ -123,4 +125,4 @@ class OBX_SmsKontakt extends OBX_SmsSender {
 	}
 }
 
-OBX_SmsKontakt::registerProvider();
+SmsKontakt::registerProvider();

@@ -4,8 +4,9 @@
  ** @vendor A68 Studio             **
  ** @mailto info@a-68.ru           **
  ************************************/
+use OBX\Sms\SmsSender;
 
-class OBX_BaseProvider extends OBX_SmsSender {
+class BaseProvider extends SmsSender {
 
 	protected $PROVIDER_ID = "BASESMS";
 	protected $PROVIDER_NAME = "Базовый провайдер";
@@ -43,4 +44,4 @@ class OBX_BaseProvider extends OBX_SmsSender {
 	}
 }
 
-OBX_BaseProvider::registerProvider();
+BaseProvider::registerProvider();

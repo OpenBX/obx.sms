@@ -5,7 +5,9 @@
  ** @mailto info@a-68.ru           **
  ************************************/
 
-class OBX_IqSms extends OBX_SmsSender {
+use OBX\Sms\SmsSender;
+
+class IqSms extends SmsSender {
 
 	protected $PROVIDER_ID = "IQSMS";
 	protected $PROVIDER_NAME = "Базовый провайдер";
@@ -62,14 +64,14 @@ class OBX_IqSms extends OBX_SmsSender {
 
 	private function _setApiLogin($apiLogin) {
 		if (empty($apiLogin)) {
-			throw new Exception(self::ERROR_EMPTY_API_LOGIN);
+			throw new \Exception(self::ERROR_EMPTY_API_LOGIN);
 		}
 		$this->_apiLogin = $apiLogin;
 	}
 
 	private function _setApiPassword($apiPassword) {
 		if (empty($apiPassword)) {
-			throw new Exception(self::ERROR_EMPTY_API_PASSWORD);
+			throw new \Exception(self::ERROR_EMPTY_API_PASSWORD);
 		}
 		$this->_apiPassword = $apiPassword;
 	}
@@ -98,11 +100,11 @@ class OBX_IqSms extends OBX_SmsSender {
 		$body = curl_exec($client);
 		curl_close($client);
 		if (empty($body)) {
-			throw new Exception(self::ERROR_EMPTY_RESPONSE);
+			throw new \Exception(self::ERROR_EMPTY_RESPONSE);
 		}
 		$decodedBody = json_decode($body, true);
 		if (is_null($decodedBody)) {
-			throw new Exception($body);
+			throw new \Exception($body);
 		}
 		return $decodedBody;
 	}
@@ -155,4 +157,4 @@ class OBX_IqSms extends OBX_SmsSender {
 		return $this->_sendRequest('senders');
 	}
 }
-OBX_IqSms::registerProvider();
+IqSms::registerProvider();

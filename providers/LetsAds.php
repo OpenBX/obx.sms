@@ -4,8 +4,9 @@
  ** @vendor A68 Studio             **
  ** @mailto info@a-68.ru           **
  ************************************/
+use OBX\Sms\SmsSender;
 
-class OBX_LetsAds extends OBX_SmsSender{
+class LetsAds extends SmsSender{
 	protected $PROVIDER_ID = "LETSADS";
 	protected $PROVIDER_NAME = "LetsAds.com";
 	protected $PROVIDER_DESCRIPTION = "<a href='http://letsads.com/'>Сайт поставщика</a>";
@@ -101,7 +102,7 @@ class OBX_LetsAds extends OBX_SmsSender{
 	}
 
 	public function getStatus($ids) {
-		$xml = new SimpleXMLElement("<request></request>");
+		$xml = new \SimpleXMLElement("<request></request>");
 		$this->addAuth($xml);
 		if (is_array($ids)) {
 			foreach ($ids as $i => $id) {
@@ -113,7 +114,7 @@ class OBX_LetsAds extends OBX_SmsSender{
 		$response = $this->doSend($xml);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xmlRes = new SimpleXMLElement($response);
+			$xmlRes = new \SimpleXMLElement($response);
 			foreach ($xmlRes->sms as $tmp) {
 				$tmpResult = array();
 				$tmpResult['id'] = (string)$tmp['id'];
@@ -138,12 +139,12 @@ class OBX_LetsAds extends OBX_SmsSender{
 	}
 
 	public function getBalance() {
-		$xml = new SimpleXMLElement("<request></request>");
+		$xml = new \SimpleXMLElement("<request></request>");
 		$this->addAuth($xml);
 		$response = $this->doSend($xml);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xmlResult = new SimpleXMLElement($response);
+			$xmlResult = new \SimpleXMLElement($response);
 			$result['money'] = (double)$xmlResult->money;
 			$result['credits'] = (double)$xmlResult->credits;
 			$result['holdMoney'] = (double)$xmlResult->holdMoney;
@@ -156,7 +157,7 @@ class OBX_LetsAds extends OBX_SmsSender{
 	}
 
 	public function sendEx($from, $to, $message) {
-		$xmlResult = new SimpleXMLElement("<request></request>");
+		$xmlResult = new \SimpleXMLElement("<request></request>");
 		$this->addAuth($xmlResult);
 
 		$xmlResult->message->from = $from;
@@ -175,7 +176,7 @@ class OBX_LetsAds extends OBX_SmsSender{
 		$response = $this->doSend($xmlResult);
 		$result = array();
 		if ($this->starts_with("<?xml", $response)) {
-			$xml = new SimpleXMLElement($response);
+			$xml = new \SimpleXMLElement($response);
 			$result['count'] = (int)$xml->count;
 			$result['data'] = array();
 			foreach ($xml->to as $tmp) {
@@ -207,7 +208,7 @@ class OBX_LetsAds extends OBX_SmsSender{
 
 	private function doSend($xml) {
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, OBX_LetsAds::ADDR);
+		curl_setopt($ch, CURLOPT_URL, self::ADDR);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_POST, 1);
@@ -225,4 +226,4 @@ class OBX_LetsAds extends OBX_SmsSender{
 		return $result;
 	}
 }
-OBX_LetsAds::registerProvider();
+LetsAds::registerProvider();
