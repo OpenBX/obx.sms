@@ -12,9 +12,9 @@
 
 namespace OBX\Sms;
 
-use OBX\Core\CMessagePool;
+use OBX\Core\CMessagePoolDecorator;
 
-abstract class SmsSender extends CMessagePool {
+abstract class SmsSender extends CMessagePoolDecorator {
 	static protected $_arProvidersList;
 
 	protected $PROVIDER_ID = "";
