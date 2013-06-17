@@ -1,9 +1,15 @@
 <?
-/************************************
- ** @product A68:SMS Bitrix Module **
- ** @vendor A68 Studio             **
- ** @mailto info@a-68.ru           **
- ************************************/
+/*******************************************
+ ** @product OBX:Market Bitrix Module     **
+ ** @authors                              **
+ **         Maksim S. Makarov aka pr0n1x  **
+ **         Morozov P. Artem aka tashiro  **
+ ** @license Affero GPLv3                 **
+ ** @mailto rootfavell@gmail.com          **
+ ** @mailto tashiro@yandex.ru             **
+ ** @copyright 2013 DevTop                **
+ *******************************************/
+
 use OBX\Sms\SmsSender;
 
 class KompeitoSms extends SmsSender {
