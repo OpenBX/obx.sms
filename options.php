@@ -6,6 +6,8 @@
  ** @user tashiro                       **
  *****************************************/
 
+use OBX\Sms\SmsSettings;
+
 IncludeModuleLangFile(__FILE__);
 
 if (!$USER->IsAdmin()) return;
@@ -21,7 +23,7 @@ $arTabsList = array(
 		"TAB" => GetMessage("OBX_SMS_SETTINGS_TAB_BASE"),
 		"ICON" => "settings_currency",
 		"TITLE" => GetMessage("OBX_SMS_SETTINGS_TITLE_BASE"),
-		"CONTROLLER" => OBX_SmsSettings::getController("BASE")
+		"CONTROLLER" => SmsSettings::getController("BASE")
 	)
 );
 $TabControl = new CAdminTabControl("tabSettings", $arTabsList);
@@ -31,7 +33,7 @@ $TabControl = new CAdminTabControl("tabSettings", $arTabsList);
 if ($REQUEST_METHOD == "POST" && strlen($Update . $Apply) > 0 && check_bitrix_sessid()) {
 	foreach ($_POST as $key => $value) {
 		if(substr($key,0,5) == "PROV_"){
-			COption::SetOptionString("obx.sms", $key, $value);
+			\COption::SetOptionString("obx.sms", $key, $value);
 		}
 	}
 	if (strlen($Update) > 0 && strlen($_REQUEST["back_url_settings"]) > 0)
@@ -69,7 +71,7 @@ $APPLICATION->AddHeadScript("/bitrix/modules/obx.sms/js/jquery-1.8.2.min.js");
 		<?if (strlen($_REQUEST["back_url_settings"]) > 0): ?>
 		<input type="button" name="Cancel" value="<?=GetMessage("MAIN_OPT_CANCEL")?>"
 			   title="<?=GetMessage("MAIN_OPT_CANCEL_TITLE")?>"
-			   onclick="window.location='<?echo htmlspecialchars(CUtil::addslashes($_REQUEST["back_url_settings"]))?>'">
+			   onclick="window.location='<?echo htmlspecialchars(\CUtil::addslashes($_REQUEST["back_url_settings"]))?>'">
 		<input type="hidden" name="back_url_settings" value="<?=htmlspecialchars($_REQUEST["back_url_settings"])?>">
 		<? endif?>
 		<?=bitrix_sessid_post();?>

@@ -110,9 +110,9 @@ abstract class SmsSender extends CMessagePool {
 		$dir = opendir($_providerDir);
 		while ($elementOfDir = readdir($dir)) {
 			if (
-				$elementOfDir != ".."
-				&& $elementOfDir != "."
-				&& substr($elementOfDir, strlen($elementOfDir) - 4, strlen($elementOfDir)) == ".php"
+					$elementOfDir != ".."
+					&& $elementOfDir != "."
+					&& substr($elementOfDir, strlen($elementOfDir) - 4, strlen($elementOfDir)) == ".php"
 			) {
 				$arFilesList[] = $elementOfDir;
 			}
@@ -215,6 +215,13 @@ abstract class SmsSender extends CMessagePool {
 			if (array_key_exists($id, $curSettings)) {
 				\COption::SetOptionString("obx.sms", "PROV_" . $this->PROVIDER_ID . "_" . $id, $setting["VALUE"]);
 			}
+		}
+	}
+
+	final static public function getCurrent() {
+		$curProvID = \COption::GetOptionString("obx.sms", "PROV_SELECTED");
+		if (strlen($curProvID) > 0) {
+			return self::factory($curProvID);
 		}
 	}
 

@@ -179,6 +179,13 @@ class LetsAds extends SmsSender{
 			$xml = new \SimpleXMLElement($response);
 			$result['count'] = (int)$xml->count;
 			$result['data'] = array();
+			// +++
+			if ($xml->name == "Error") {
+				$error = (string)$xml->description;
+				$result['error'] = $error;
+				unset ($error);
+			}
+			// ^^^
 			foreach ($xml->to as $tmp) {
 				$a = $tmp->attributes();
 				$c = $tmp->children();

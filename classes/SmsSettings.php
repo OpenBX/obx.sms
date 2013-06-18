@@ -30,12 +30,12 @@ abstract class SmsSettings extends CMessagePool {
 		if (!preg_match('~^[a-zA-Z\_][a-zA-Z0-9\_]*$~', $tabCode)) {
 			return null;
 		}
-		if (!class_exists('OBX_SmsSettings_' . $tabCode)) {
+		if (!class_exists('OBX\Sms\SmsSettings_' . $tabCode)) {
 			return null;
 		}
 
 		if (empty(self::$_arInstances[$tabCode])) {
-			$className = 'OBX_SmsSettings_' . $tabCode;
+			$className = 'OBX\Sms\SmsSettings_' . $tabCode;
 			$TabContentObject = new $className;
 			if ($TabContentObject instanceof self) {
 				self::$_arInstances[$tabCode] = $TabContentObject;
@@ -45,7 +45,7 @@ abstract class SmsSettings extends CMessagePool {
 	}
 
 	public function showMessages($colspan = -1) {
-		$colspan == intval($colspan);
+		$colspan = intval($colspan);
 		if ($colspan < 0) {
 			$colspan = $this->listTableColumns;
 		}
@@ -63,7 +63,7 @@ abstract class SmsSettings extends CMessagePool {
 	}
 
 	public function showWarnings($colspan = -1) {
-		$colspan == intval($colspan);
+		$colspan = intval($colspan);
 		if ($colspan < 0) {
 			$colspan = $this->listTableColumns;
 		}
@@ -81,7 +81,7 @@ abstract class SmsSettings extends CMessagePool {
 	}
 
 	public function showErrors($colspan = -1) {
-		$colspan == intval($colspan);
+		$colspan = intval($colspan);
 		if ($colspan < 0) {
 			$colspan = $this->listTableColumns;
 		}
@@ -105,12 +105,12 @@ abstract class SmsSettings extends CMessagePool {
 	abstract public function saveTabData();
 }
 
-class OBX_SmsSettings_BASE extends OBX_SmsSettings {
+class SmsSettings_BASE extends SmsSettings {
 	public $curProvider;
 
 	public function showTabContent() {
-		$arProvidersList = OBX_SmsSender::getProvidersList();
-		$curProviderString = COption::GetOptionString("obx.sms", "PROV_SELECTED", "");
+		$arProvidersList = SmsSender::getProvidersList();
+		$curProviderString = \COption::GetOptionString("obx.sms", "PROV_SELECTED", "");
 		if (!strlen($curProviderString) > 0) {
 			$curProviderString = "BASESMS";
 		}
