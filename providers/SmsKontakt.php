@@ -28,24 +28,24 @@ class SmsKontakt extends SmsSender {
 	 */
 	protected $arSettings = array(
 		"USER_PHONE" => array(
-			"NAME" => "Номер телефона в формате 9xxxxxxxxx",
+			"NAME" => "Номер телефона в формате 79xxxxxxxxx",
 			"TYPE" => "TEXT",
-			"VALUE" => "9135591313"
+			"VALUE" => ""
 		),
 		"API_KEY" => array(
 			"NAME" => "API KEY (указан на сайте в личном кабинете)",
 			"TYPE" => "TEXT",
-			"VALUE" => "pdayzntcxs",
+			"VALUE" => "",
 		),
 		"SENDER_ID" => array(
 			"NAME" => "Имя или номер отправителя",
 			"TYPE" => "TEXT",
-			"VALUE" => "SMS-kontakt"
+			"VALUE" => ""
 		),
 		"TEST" => array(
 			"NAME" => "Тестовый режим (1 - вкл, 0 - выкл)",
 			"TYPE" => "TEXT",
-			"VALUE" => "0"
+			"VALUE" => "1"
 
 		)
 	);
@@ -81,6 +81,7 @@ class SmsKontakt extends SmsSender {
 	protected $sign;
 
 	protected function __construct() {
+		$this->arSettings = $this->getSettings();
 		$this->sign = md5($this->arSettings["USER_PHONE"]["VALUE"] . $this->arSettings["API_KEY"]["VALUE"]);
 	}
 
