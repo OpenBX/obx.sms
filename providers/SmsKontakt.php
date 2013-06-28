@@ -67,14 +67,14 @@ class SmsKontakt extends Provider {
 		return 1;
 	}
 
-	public function send($telNo, $text) {
+	public function send($telNo, $text, $arFields = array()) {
 		$result = $this->MessageSend($telNo, $text);
 		$arResult = json_decode($result, true);
 		if ($arResult[0]["result"] == "success") {
 			return true;
 		} else {
-			$this->addError($arResult[0]["describe"], self::SEND_STATUS_FAIL);
-			return self::SEND_STATUS_FAIL;
+			$this->addError($arResult[0]["describe"]);
+			return false;
 		}
 	}
 

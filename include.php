@@ -10,7 +10,7 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\SmsSender;
+use OBX\Sms\Provider;
 
 if (!CModule::IncludeModule("iblock")) {
 	return false;
@@ -41,4 +41,4 @@ CModule::AddAutoloadClasses("obx.sms", $arModuleClasses);
 /*
  * Регистрация всех провайдеров в папке ./providers/
  */
-SmsSender::includeProviders();
+Provider::includeProviders();

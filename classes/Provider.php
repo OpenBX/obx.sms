@@ -21,12 +21,6 @@ abstract class Provider extends CMessagePoolDecorator {
 	protected $PROVIDER_NAME = "";
 	protected $PROVIDER_DESCRIPTION = "";
 
-	/*
-	 * Константы для опредления ответа сервера
-	 */
-	const SEND_STATUS_SUCCESS = "1";
-	const SEND_STATUS_FAIL = "fail";
-
 	/**
 	 * Параметры
 	 * @var \OBX\Sms\Settings\Settings | null
@@ -98,7 +92,7 @@ abstract class Provider extends CMessagePoolDecorator {
 	 * @return bool
 	 */
 	final static public function includeProviders() {
-		$_providerDir = $_SERVER["DOCUMENT_ROOT"] . BX_ROOT . "/modules/obx.sms/providers";
+		$_providerDir = $_SERVER["DOCUMENT_ROOT"] . BX_ROOT . "/php_interface/obx.sms";
 
 		if (!is_dir($_providerDir)) {
 			return false;
@@ -137,26 +131,28 @@ abstract class Provider extends CMessagePoolDecorator {
 		if (array_key_exists($providerID, self::$_arProvidersList)) {
 			return self::$_arProvidersList[$providerID];
 		} else {
-			self::addError(GetMessage("OBX_SMS_PROVIDER_NOT_FOUND"));
+			/**
+			 * @var \CMain $APPLICATION
+			 */
+			global $APPLICATION;
+			$APPLICATION->ThrowException(GetMessage("OBX_SMS_PROVIDER_NOT_FOUND"));
 			return null;
 		}
 	}
 
-
-	/*
-	 * Простая отправка сообщений
-	 * send = один номер - один текст сообщения
-	 * sendBatch =  список номеров - один текст сообщения
-	 */
 	/**
+	 * Простая отправка сообщений
+	 * один номер - один текст сообщения
 	 * @param $telNo
 	 * @param $text
-	 * @return mixed
+	 * @param array $arFields
+	 * @return bool
 	 */
-	abstract public function send($telNo, $text);
+	abstract public function send($telNo, $text, $arFields = array());
 
 	/**
-	 *
+	 * TODO:
+	 * список номеров - один текст сообщения
 	 */
 	public function sendBatch() {
 	}
@@ -164,22 +160,9 @@ abstract class Provider extends CMessagePoolDecorator {
 	/*
 	 * Персональная отправка сообщений
 	 * TODO: to @version 0.5.0
-	 * sendMessage = Один номер - один шаблон сообщения
-	 * sendMessageBatch = Список персон - один шаблон
+	 * send = Один номер - один шаблон сообщения
+	 * sendBatch = Список персон - один шаблон
 	 */
-
-	/**
-	 * @param $tel
-	 * @param $templateID
-	 * @param array $arFields
-	 */
-	abstract public function sendMessage($tel, $templateID, $arFields = array());
-
-	/**
-	 *
-	 */
-	public function sendMessageBatch() {
-	}
 
 	/**
 	 * @return mixed
@@ -195,10 +178,14 @@ abstract class Provider extends CMessagePoolDecorator {
 
 
 	final static public function getCurrent() {
-		$curProvID = \COption::GetOptionString("obx.sms", "PROV_SELECTED");
+		$curProvID = \COption::GetOptionString("obx.sms", "PROVIDER_SELECTED");
 		if (strlen($curProvID) > 0) {
 			return self::factory($curProvID);
 		}
 	}
-
+	final static public function setCurrent($providerID) {
+		if (array_key_exists($providerID, self::$_arProvidersList)) {
+			\COption::SetOptionString("obx.sms", "PROVIDER_SELECTED", $providerID);
+		}
+	}
 }

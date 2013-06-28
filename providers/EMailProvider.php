@@ -13,7 +13,7 @@
 use OBX\Sms\Provider;
 use OBX\Sms\Settings\Settings;
 
-class BaseProvider extends Provider {
+class EMailProvider extends Provider {
 
 	protected $PROVIDER_ID = 'BASESMS';
 
@@ -34,7 +34,7 @@ class BaseProvider extends Provider {
 		return 0;
 	}
 
-	public function send($telNo, $text) {
+	public function send($telNo, $text, $arFields = array()) {
 		// TODO: Написать тут отправку текст по EMail
 	}
 
@@ -43,4 +43,4 @@ class BaseProvider extends Provider {
 	}
 }
 
-BaseProvider::registerProvider();
+EMailProvider::registerProvider();
