@@ -11,6 +11,7 @@
  *******************************************/
 
 use OBX\Sms\SmsSettings;
+use OBX\Sms\Settings;
 
 IncludeModuleLangFile(__FILE__);
 

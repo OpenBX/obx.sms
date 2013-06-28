@@ -239,4 +239,4 @@ class LetsAds extends SmsSender{
 		return $result;
 	}
 }
-LetsAds::registerProvider();
+//LetsAds::registerProvider();

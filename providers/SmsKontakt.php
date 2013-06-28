@@ -10,9 +10,9 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\SmsSender;
+use OBX\Sms\Provider;
 
-class SmsKontakt extends SmsSender {
+class SmsKontakt extends Provider {
 
 	/*
 	 * Объявление провайдера

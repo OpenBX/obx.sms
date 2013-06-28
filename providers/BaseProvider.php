@@ -10,31 +10,24 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\SmsSender;
+use OBX\Sms\Provider;
+use OBX\Sms\Settings\Settings;
 
-class BaseProvider extends SmsSender {
+class BaseProvider extends Provider {
 
-	protected $PROVIDER_ID = "BASESMS";
-	protected $PROVIDER_NAME = "Базовый провайдер";
-	protected $PROVIDER_DESCRIPTION = "Dummy provider class <a href='javascript:void(0)'>test link</a>";
+	protected $PROVIDER_ID = 'BASESMS';
 
-	protected $arSettings = array(
-		"LOGIN" => array(
-			"NAME" => "Имя пользователя",
-			"TYPE" => "TEXT",
-			"VALUE" => "BASE_SMS"
-		),
-		"PASS" => array(
-			"NAME" => "Пароль",
-			"TYPE" => "TEXT",
-			"VALUE" => "PASSWORD",
-		),
-		"FROM" => array(
-			"NAME" => "Имя или номер отправителя",
-			"TYPE" => "TEXT",
-			"VALUE" => "BASE_TEST"
-		)
-	);
+	protected function __construct() {
+		$this->_Settings = new Settings('PROVIDER_'.$this->PROVIDER_ID, array(
+			'EMAIL' => array(
+				'NAME' => GetMessage('OBX_SMS_BASE_PROV_SETT_EMAIL_NAME'),
+				'TYPE' => 'TEXT',
+				'VALUE' => 'PASSWORD',
+			),
+		));
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_BASE_PROVIDER_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_BASE_PROVIDER_DESCRIPTION');
+	}
 
 
 	public function requestBalance() {
@@ -42,7 +35,7 @@ class BaseProvider extends SmsSender {
 	}
 
 	public function send($telNo, $text) {
-
+		// TODO: Написать тут отправку текст по EMail
 	}
 
 	public function requestMessageStatus($messageID) {

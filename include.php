@@ -36,14 +36,8 @@ if (!CModule::IncludeModule("obx.core")) {
 	return false;
 }
 
-
-CModule::AddAutoloadClasses(
-	"obx.sms",
-	array(
-	'OBX\Sms\SmsSender' => 'classes/SmsSender.php'
-	,'OBX\Sms\SmsSettings' => 'classes/SmsSettings.php'
-	)
-);
+$arModuleClasses = require dirname(__FILE__).'/classes/.classes.php';
+CModule::AddAutoloadClasses("obx.sms", $arModuleClasses);
 /*
  * Регистрация всех провайдеров в папке ./providers/
  */

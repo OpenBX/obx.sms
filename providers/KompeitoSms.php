@@ -239,4 +239,4 @@ class KompeitoSms extends SmsSender {
 	}
 }
 
-KompeitoSms::registerProvider();
+//KompeitoSms::registerProvider();

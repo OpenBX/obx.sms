@@ -34,10 +34,10 @@ class obx_sms extends CModule
 		$this->MODULE_VERSION = $arModuleInfo["VERSION"];
 		$this->MODULE_VERSION_DATE = $arModuleInfo["VERSION_DATE"];
 
-		$this->MODULE_NAME = GetMessage("OBX_MODULE_INSTALL_NAME");
-		$this->MODULE_DESCRIPTION = GetMessage("OBX_MODULE_INSTALL_DESCRIPTION");
-		$this->PARTNER_NAME = GetMessage("OBX_PARTNER_NAME");
-		$this->PARTNER_URI = GetMessage("OBX_PARTNER_URI");
+		$this->MODULE_NAME = GetMessage("OBX_SMS_MODULE_INSTALL_NAME");
+		$this->MODULE_DESCRIPTION = GetMessage("OBX_SMS_MODULE_INSTALL_DESCRIPTION");
+		$this->PARTNER_NAME = GetMessage("OBX_SMS_PARTNER_NAME");
+		$this->PARTNER_URI = GetMessage("OBX_SMS_PARTNER_URI");
 	}
 
 	public function DoInstall() {

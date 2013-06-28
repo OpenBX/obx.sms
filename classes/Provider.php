@@ -14,7 +14,7 @@ namespace OBX\Sms;
 
 use OBX\Core\CMessagePoolDecorator;
 
-abstract class SmsSender extends CMessagePoolDecorator {
+abstract class Provider extends CMessagePoolDecorator {
 	static protected $_arProvidersList;
 
 	protected $PROVIDER_ID = "";
@@ -27,31 +27,29 @@ abstract class SmsSender extends CMessagePoolDecorator {
 	const SEND_STATUS_SUCCESS = "1";
 	const SEND_STATUS_FAIL = "fail";
 
-	/*
+	/**
 	 * Параметры
+	 * @var \OBX\Sms\Settings\Settings | null
 	 */
-	protected $arSettings = array(
-		"LOGIN" => array(
-			"NAME" => "Имя пользователя",
-			"TYPE" => "TEXT",
-			"VALUE" => ""
-		),
-		"PASS" => array(
-			"NAME" => "Пароль",
-			"TYPE" => "TEXT",
-			"VALUE" => "",
-		),
-		"FROM" => array(
-			"NAME" => "Имя или номер отправителя",
-			"TYPE" => "TEXT",
-			"VALUE" => "sms_test"
-		)
-	);
+	protected $_Settings = null;
 
-	protected function __construct() {
-	}
+	/**
+	 * В конструкторе обязательно надо определить переменную $this->_Settings
+	 */
+	abstract protected function __construct();
 
 	final protected function __clone() {
+	}
+
+	public function getSettings($bReturnArray = false) {
+		if($bReturnArray) {
+			return $this->_Settings->getSettings();
+		}
+		return $this->_Settings;
+	}
+
+	public function saveSettings($arSettings) {
+		$this->_Settings->saveSettings($arSettings);
 	}
 
 	/**
@@ -80,19 +78,18 @@ abstract class SmsSender extends CMessagePoolDecorator {
 	 */
 	final static public function registerProvider() {
 		$className = get_called_class();
-		$im = new $className;
-		self::addProvider($im->PROVIDER_ID(), $im);
+		$Provider = new $className;
+		self::addProvider($Provider);
 	}
 
 	/**
-	 * @param $providerID
-	 * @param $Provider
+	 * @param self $Provider
 	 */
-	final static protected function addProvider($providerID, $Provider) {
+	final static protected function addProvider(self $Provider) {
 		if ($Provider instanceof self) {
-			if (!array_key_exists($providerID, self::$_arProvidersList)) {
+			if (!array_key_exists($Provider->PROVIDER_ID(), self::$_arProvidersList)) {
 				$Provider->getSettings();
-				self::$_arProvidersList[$providerID] = $Provider;
+				self::$_arProvidersList[$Provider->PROVIDER_ID()] = $Provider;
 			}
 		}
 	}
@@ -170,13 +167,13 @@ abstract class SmsSender extends CMessagePoolDecorator {
 	 * sendMessage = Один номер - один шаблон сообщения
 	 * sendMessageBatch = Список персон - один шаблон
 	 */
+
 	/**
 	 * @param $tel
 	 * @param $templateID
 	 * @param array $arFields
 	 */
-	public function sendMessage($tel, $templateID, $arFields = array()) {
-	}
+	abstract public function sendMessage($tel, $templateID, $arFields = array());
 
 	/**
 	 *
@@ -195,28 +192,7 @@ abstract class SmsSender extends CMessagePoolDecorator {
 	 */
 	abstract public function requestMessageStatus($messageID);
 
-	/**
-	 * @return array
-	 */
-	public function getSettings() {
-		$curSettings = & $this->arSettings;
-		foreach ($curSettings as $id => $setting) {
-			$curSettings[$id]["VALUE"] = \COption::GetOptionString("obx.sms", "PROV_" . $this->PROVIDER_ID . "_" . $id, $setting["VALUE"]);
-		}
-		return $curSettings;
-	}
 
-	/**
-	 * @param $arSettings
-	 */
-	public function saveSettings($arSettings) {
-		$curSettings = & $this->arSettings;
-		foreach ($arSettings as $id => $setting) {
-			if (array_key_exists($id, $curSettings)) {
-				\COption::SetOptionString("obx.sms", "PROV_" . $this->PROVIDER_ID . "_" . $id, $setting["VALUE"]);
-			}
-		}
-	}
 
 	final static public function getCurrent() {
 		$curProvID = \COption::GetOptionString("obx.sms", "PROV_SELECTED");

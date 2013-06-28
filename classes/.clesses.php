@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 /***********************************************
  ** @product OBX:SMS Bitrix Module            **
@@ -8,11 +7,10 @@
  ** @mailto rootfavell@gmail.com              **
  ** @copyright 2013 DevTop                    **
  ***********************************************/
-
-require dirname(__FILE__)."/../../obx.core/classes/Build.php";
-$build = new OBX_Build("obx.sms");
-$build->generateInstallCode();
-$build->generateUnInstallCode();
-$build->generateBackInstallCode();
-$build->backInstallResources();
-$build->generateMD5FilesList();
+$arModuleClasses = array(
+	 'OBX\Sms\Settings\Settings'		=> 'classes/Settings.php'
+	,'OBX\Sms\Settings\Tab'				=> 'classes/Settings.php'
+	,'OBX\Sms\ModuleSettingsMainTab'	=> 'classes/Settings.php'
+	,'OBX\Sms\Provider'					=> 'classes/Provider.php'
+);
+return $arModuleClasses;

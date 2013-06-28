@@ -162,4 +162,4 @@ class IqSms extends SmsSender {
 		return $this->_sendRequest('senders');
 	}
 }
-IqSms::registerProvider();
+//IqSms::registerProvider();
