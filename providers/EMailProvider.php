@@ -11,20 +11,24 @@
  *******************************************/
 
 use OBX\Sms\Provider;
-use OBX\Sms\Settings\Settings;
+use OBX\Core\Settings\Settings;
 
 class EMailProvider extends Provider {
 
-	protected $PROVIDER_ID = 'BASESMS';
+	protected $PROVIDER_ID = 'EMAIL';
 
 	protected function __construct() {
-		$this->_Settings = new Settings('PROVIDER_'.$this->PROVIDER_ID, array(
-			'EMAIL' => array(
-				'NAME' => GetMessage('OBX_SMS_BASE_PROV_SETT_EMAIL_NAME'),
-				'TYPE' => 'TEXT',
-				'VALUE' => 'PASSWORD',
-			),
-		));
+		$this->_Settings = new Settings(
+			'obx.sms',
+			'PROVIDER_'.$this->PROVIDER_ID,
+			array(
+				'EMAIL' => array(
+					'NAME' => GetMessage('OBX_SMS_BASE_PROV_SETT_EMAIL_NAME'),
+					'TYPE' => 'TEXT',
+					'VALUE' => 'PASSWORD',
+				),
+			)
+		);
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_BASE_PROVIDER_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_BASE_PROVIDER_DESCRIPTION');
 	}

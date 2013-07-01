@@ -11,54 +11,61 @@
  *******************************************/
 
 use OBX\Sms\Provider;
+use OBX\Core\Settings\Settings;
+
+IncludeModuleLangFile(__FILE__);
 
 class SmsKontakt extends Provider {
 
 	/*
 	 * Объявление провайдера
 	 */
-	protected $PROVIDER_ID = "SMSKONTAKT";
-	protected $PROVIDER_NAME = "СМС-Контакт";
-	protected $PROVIDER_DESCRIPTION = "Необходима регистрация на <a href='http://sms-kontakt.ru/'>сайте поставщика</a>
-	<br>
-	<font color='red'>ОБЯЗАТЕЛЬНО УКАЖИТЕ user_phone и api_key</font>";
+	protected $PROVIDER_ID = 'SMSKONTAKT';
+	protected $PROVIDER_NAME = null;
+	protected $PROVIDER_DESCRIPTION = null;
 
-	/*
-	 * Параметры
-	 */
-	protected $arSettings = array(
-		"USER_PHONE" => array(
-			"NAME" => "Номер телефона в формате 79xxxxxxxxx",
-			"TYPE" => "TEXT",
-			"VALUE" => ""
-		),
-		"API_KEY" => array(
-			"NAME" => "API KEY (указан на сайте в личном кабинете)",
-			"TYPE" => "TEXT",
-			"VALUE" => "",
-		),
-		"SENDER_ID" => array(
-			"NAME" => "Имя или номер отправителя",
-			"TYPE" => "TEXT",
-			"VALUE" => ""
-		),
-		"TEST" => array(
-			"NAME" => "Тестовый режим (1 - вкл, 0 - выкл)",
-			"TYPE" => "TEXT",
-			"VALUE" => "1"
+	const URL_INFO = 'http://sms-kontakt.ru/api/get_info/';
+	const URL_SEND = 'http://sms-kontakt.ru/api/message/send/';
 
-		)
-	);
+	protected function __construct() {
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
+		$this->_Settings = new Settings(
+			'obx.sms',
+			'PROVIDER_'.$this->PROVIDER_ID,
+			array(
+				'USER_PHONE' => array(
+					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_USER_PHONE'),
+					'TYPE' => 'STRING',
+					'VALUE' => ''
+				),
+				'API_KEY' => array(
+					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_API_KEY'),
+					'TYPE' => 'STRING',
+					'VALUE' => '',
+				),
+				'SENDER_ID' => array(
+					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_SENDER_ID'),
+					'TYPE' => 'STRING',
+					'VALUE' => ''
+				),
+				'TEST' => array(
+					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_TEST'),
+					'TYPE' => 'CHECKBOX',
+					'VALUE' => 'Y'
 
-	const URL_INFO = "http://sms-kontakt.ru/api/get_info/";
-	const URL_SEND = "http://sms-kontakt.ru/api/message/send/";
+				)
+			)
+		);
+		$this->sign = md5($this->_Settings->getOption('USER_PHONE') . $this->_Settings->getOption('API_KEY'));
+	}
 
 	public function requestBalance() {
 		$arResult = json_decode($this->getBallance(), true);
-		if ($arResult[0]["result"] == "success") {
-			return $arResult[0]["describe"];
+		if ($arResult[0]['result'] == 'success') {
+			return $arResult[0]['describe'];
 		} else {
-			$this->addError($arResult[0]["describe"], self::SEND_STATUS_FAIL);
+			$this->addError($arResult[0]['describe'], self::SEND_STATUS_FAIL);
 			return self::SEND_STATUS_FAIL;
 		}
 	}
@@ -70,20 +77,17 @@ class SmsKontakt extends Provider {
 	public function send($telNo, $text, $arFields = array()) {
 		$result = $this->MessageSend($telNo, $text);
 		$arResult = json_decode($result, true);
-		if ($arResult[0]["result"] == "success") {
+		if ($arResult[0]['result'] == 'success') {
 			return true;
 		} else {
-			$this->addError($arResult[0]["describe"]);
+			$this->addError($arResult[0]['describe']);
 			return false;
 		}
 	}
 
 	protected $sign;
 
-	protected function __construct() {
-		$this->arSettings = $this->getSettings();
-		$this->sign = md5($this->arSettings["USER_PHONE"]["VALUE"] . $this->arSettings["API_KEY"]["VALUE"]);
-	}
+
 
 	function SendPostRequest($url, $headers, $post_body) {
 		$ch = curl_init();
@@ -123,7 +127,7 @@ class SmsKontakt extends Provider {
 
 
 		$http_body = 'user_phone=' . $user_phone . '&sign=' .
-			$this->sign . "&info=balance";
+			$this->sign . '&info=balance';
 		$headers[] = 'Content-Type: text/xml; charset=utf-8';
 		$headers[] = 'Content-Length: ' . strlen($http_body);
 		$server_answer = $this->SendPostRequest(self::URL_INFO, $headers, $http_body);

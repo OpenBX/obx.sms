@@ -23,7 +23,7 @@ abstract class Provider extends CMessagePoolDecorator {
 
 	/**
 	 * Параметры
-	 * @var \OBX\Sms\Settings\Settings | null
+	 * @var \OBX\Core\Settings\Settings | null
 	 */
 	protected $_Settings = null;
 
@@ -44,6 +44,10 @@ abstract class Provider extends CMessagePoolDecorator {
 
 	public function saveSettings($arSettings) {
 		$this->_Settings->saveSettings($arSettings);
+	}
+
+	public function saveSettingsRequestData() {
+		$this->_Settings->saveSettingsRequestData();
 	}
 
 	/**

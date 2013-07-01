@@ -1,22 +1,20 @@
 <?php
-/*******************************************
- ** @product OBX:Market Bitrix Module     **
- ** @authors                              **
- **         Maksim S. Makarov aka pr0n1x  **
- **         Morozov P. Artem aka tashiro  **
- ** @license Affero GPLv3                 **
- ** @mailto rootfavell@gmail.com          **
- ** @mailto tashiro@yandex.ru             **
- ** @copyright 2013 DevTop                **
- *******************************************/
+/***********************************************
+ ** @product OBX:SMS Bitrix Module            **
+ ** @authors                                  **
+ **         Maksim S. Makarov aka pr0n1x      **
+ **         Morozov P. Artem aka tashiro      **
+ ** @license Affero GPLv3                     **
+ ** @mailto rootfavell@gmail.com              **
+ ** @mailto tashiro@yandex.ru                 **
+ ** @copyright 2013 DevTop                    **
+ ***********************************************/
 
-use OBX\Sms\SmsSettings;
-use OBX\Sms\Settings;
+use OBX\Sms\Settings\ModuleSettingsMainTab;
 
 IncludeModuleLangFile(__FILE__);
 
 if (!$USER->IsAdmin()) return;
-if (!CModule::IncludeModule("iblock")) return;
 if (!CModule::IncludeModule("obx.sms")) return;
 
 /**
@@ -28,7 +26,7 @@ $arTabsList = array(
 		"TAB" => GetMessage("OBX_SMS_SETTINGS_TAB_BASE"),
 		"ICON" => "settings_currency",
 		"TITLE" => GetMessage("OBX_SMS_SETTINGS_TITLE_BASE"),
-		"CONTROLLER" => SmsSettings::getController("BASE")
+		"CONTROLLER" => ModuleSettingsMainTab::GetTabController()
 	)
 );
 $TabControl = new CAdminTabControl("tabSettings", $arTabsList);
@@ -36,16 +34,25 @@ $TabControl = new CAdminTabControl("tabSettings", $arTabsList);
  * Обработаем пост
  */
 if ($REQUEST_METHOD == "POST" && strlen($Update . $Apply) > 0 && check_bitrix_sessid()) {
-	foreach ($_POST as $key => $value) {
-		if(substr($key,0,5) == "PROV_"){
-			\COption::SetOptionString("obx.sms", $key, $value);
-		}
+	foreach ($arTabsList as &$arTab) {
+		/**
+		 * @var \OBX\Core\Settings\ATab $arTabCtrl
+		 */
+		$arTabCtrl = &$arTab['CONTROLLER'];
+		$arTabCtrl->saveTabData();
 	}
-	if (strlen($Update) > 0 && strlen($_REQUEST["back_url_settings"]) > 0)
-		LocalRedirect($_REQUEST["back_url_settings"]);
-	else
-		LocalRedirect($APPLICATION->GetCurPage() . "?mid=" . urlencode($mid) . "&lang=" . urlencode(LANGUAGE_ID) . "&back_url_settings=" . urlencode($_REQUEST["back_url_settings"]) . "&" . $TabControl->ActiveTabParam());
 }
+//if ($REQUEST_METHOD == "POST" && strlen($Update . $Apply) > 0 && check_bitrix_sessid()) {
+//	foreach ($_POST as $key => $value) {
+//		if(substr($key,0,5) == "PROV_"){
+//			\COption::SetOptionString("obx.sms", $key, $value);
+//		}
+//	}
+//	if (strlen($Update) > 0 && strlen($_REQUEST["back_url_settings"]) > 0)
+//		LocalRedirect($_REQUEST["back_url_settings"]);
+//	else
+//		LocalRedirect($APPLICATION->GetCurPage() . "?mid=" . urlencode($mid) . "&lang=" . urlencode(LANGUAGE_ID) . "&back_url_settings=" . urlencode($_REQUEST["back_url_settings"]) . "&" . $TabControl->ActiveTabParam());
+//}
 /**
  * Шаблоны
  */
@@ -61,10 +68,14 @@ $APPLICATION->AddHeadScript("/bitrix/modules/obx.sms/js/jquery-1.8.2.min.js");
 		foreach ($arTabsList as &$arTab) {
 			$TabControl->BeginNextTab();
 			if (!empty($arTab["CONTROLLER"])) {
-				$arTab["CONTROLLER"]->saveTabData();
-				$arTab["CONTROLLER"]->showMessages();
-				$arTab["CONTROLLER"]->showErrors();
-				$arTab["CONTROLLER"]->showTabContent();
+				/**
+				 * @var \OBX\Core\Settings\ATab $arTabCtrl
+				 */
+				$arTabCtrl = &$arTab['CONTROLLER'];
+				$arTabCtrl->saveTabData();
+				$arTabCtrl->showMessages();
+				$arTabCtrl->showErrors();
+				$arTabCtrl->showTabContent();
 			}
 		}
 		?>
@@ -88,9 +99,13 @@ $APPLICATION->AddHeadScript("/bitrix/modules/obx.sms/js/jquery-1.8.2.min.js");
 <?
 foreach ($arTabsList as &$arTab) {
 	if (!empty($arTab["CONTROLLER"])) {
+		/**
+		 * @var \OBX\Sms\Settings\Tab $arTabCtrl
+		 */
+		$arTabCtrl = &$arTab['CONTROLLER'];
 		?>
 	<div id="<?=$arTab["DIV"] . "_scripts"?>"><?
-		$arTab["CONTROLLER"]->showTabScripts();
+		$arTabCtrl->showTabScripts();
 		?></div><?
 	}
 }
