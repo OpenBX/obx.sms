@@ -40,19 +40,15 @@ if ($REQUEST_METHOD == "POST" && strlen($Update . $Apply) > 0 && check_bitrix_se
 		 */
 		$arTabCtrl = &$arTab['CONTROLLER'];
 		$arTabCtrl->saveTabData();
+		if (strlen($Update) > 0 && strlen($_REQUEST["back_url_settings"]) > 0) {
+			LocalRedirect($_REQUEST["back_url_settings"]);
+		}
+		else {
+			LocalRedirect($APPLICATION->GetCurPage() . "?mid=" . urlencode($mid) . "&lang=" . urlencode(LANGUAGE_ID) . "&back_url_settings=" . urlencode($_REQUEST["back_url_settings"]) . "&" . $TabControl->ActiveTabParam());
+		}
 	}
 }
-//if ($REQUEST_METHOD == "POST" && strlen($Update . $Apply) > 0 && check_bitrix_sessid()) {
-//	foreach ($_POST as $key => $value) {
-//		if(substr($key,0,5) == "PROV_"){
-//			\COption::SetOptionString("obx.sms", $key, $value);
-//		}
-//	}
-//	if (strlen($Update) > 0 && strlen($_REQUEST["back_url_settings"]) > 0)
-//		LocalRedirect($_REQUEST["back_url_settings"]);
-//	else
-//		LocalRedirect($APPLICATION->GetCurPage() . "?mid=" . urlencode($mid) . "&lang=" . urlencode(LANGUAGE_ID) . "&back_url_settings=" . urlencode($_REQUEST["back_url_settings"]) . "&" . $TabControl->ActiveTabParam());
-//}
+
 /**
  * Шаблоны
  */

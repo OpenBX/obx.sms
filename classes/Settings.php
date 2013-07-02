@@ -15,7 +15,7 @@ namespace OBX\Sms\Settings;
 IncludeModuleLangFile(__FILE__);
 
 use OBX\Core\Settings\ATab as SettingsTab;
-use OBX\Sms\Provider;
+use OBX\Sms\Provider\Provider;
 
 class ModuleSettingsMainTab extends SettingsTab {
 	public $curProvider;
@@ -34,7 +34,7 @@ class ModuleSettingsMainTab extends SettingsTab {
 	<tr>
 		<td><?=GetMessage('OBX_SMS_SETT_PROVIDER')?></td>
 		<td width="65%">
-			<select name="PROV_SELECTED" id="provider_list">
+			<select name="PROVIDER_SELECTED" id="provider_list">
 				<?foreach ($arProvidersList as $Provider): ?>
 				<option <?if ($Provider->PROVIDER_ID() == $curProviderString): ?>selected<? endif;?>
 						value="<?=$Provider->PROVIDER_ID()?>"><?=$Provider->PROVIDER_NAME() . " (" . $Provider->PROVIDER_ID() . ")"?></option>
@@ -108,6 +108,7 @@ class ModuleSettingsMainTab extends SettingsTab {
 			 */
 			$Provider->saveSettingsRequestData();
 		}
+		Provider::setCurrent($_REQUEST['PROVIDER_SELECTED']);
 	}
 
 }

@@ -10,8 +10,10 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\Provider;
-use OBX\Core\Settings\Settings;
+namespace OBX\Sms\Provider;
+
+namespace OBX\Sms\Provider;
+use OBX\Core\Settings\Tab;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -30,14 +32,17 @@ class SmsKontakt extends Provider {
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
-		$this->_Settings = new Settings(
+		$this->_Settings = new Tab(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID,
 			array(
 				'USER_PHONE' => array(
 					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_USER_PHONE'),
 					'TYPE' => 'STRING',
-					'VALUE' => ''
+					'VALUE' => '',
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_USER_PHONE_PH')
+					)
 				),
 				'API_KEY' => array(
 					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_API_KEY'),
@@ -102,7 +107,7 @@ class SmsKontakt extends Provider {
 	}
 
 	protected function MessageSend($phone_to, $message) {
-		$curSettings = $this->arSettings;
+		$curSettings = $this->_Settings->getSettings();
 
 		$user_phone = $curSettings['USER_PHONE']['VALUE'];
 		$sender_id = $curSettings['SENDER_ID']['VALUE'];
@@ -119,7 +124,7 @@ class SmsKontakt extends Provider {
 
 	protected function getBallance() {
 		//?user_phone=<номер_телефона>&sign=<подпись_сообщения>&info=balance
-		$curSettings = $this->arSettings;
+		$curSettings = $this->_Settings->getSettings();
 
 		$user_phone = $curSettings['USER_PHONE']['VALUE'];
 		$sender_id = $curSettings['SENDER_ID']['VALUE'];

@@ -10,7 +10,7 @@
  ** @copyright 2013 DevTop                    **
  ***********************************************/
 
-use OBX\Sms\Provider;
+use OBX\Sms\Provider\Provider;
 
 if (!CModule::IncludeModule("iblock")) {
 	return false;

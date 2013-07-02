@@ -10,8 +10,10 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\Provider;
+namespace OBX\Sms\Provider;
 use OBX\Core\Settings\Settings;
+
+IncludeModuleLangFile(__FILE__);
 
 class EMailProvider extends Provider {
 
@@ -23,14 +25,17 @@ class EMailProvider extends Provider {
 			'PROVIDER_'.$this->PROVIDER_ID,
 			array(
 				'EMAIL' => array(
-					'NAME' => GetMessage('OBX_SMS_BASE_PROV_SETT_EMAIL_NAME'),
-					'TYPE' => 'TEXT',
-					'VALUE' => 'PASSWORD',
+					'NAME' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_EMAIL'),
+					'TYPE' => 'STRING',
+					'VALUE' => '',
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_EMAIL_PH')
+					),
 				),
 			)
 		);
-		$this->PROVIDER_NAME = GetMessage('OBX_SMS_BASE_PROVIDER_NAME');
-		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_BASE_PROVIDER_DESCRIPTION');
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_EMAIL_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_EMAIL_DESCRIPTION');
 	}
 
 
@@ -39,7 +44,26 @@ class EMailProvider extends Provider {
 	}
 
 	public function send($telNo, $text, $arFields = array()) {
-		// TODO: Написать тут отправку текст по EMail
+		$this->_Settings->syncSettings();
+		$email = $this->_Settings->getOption('EMAIL');
+		if(empty($email)) {
+			$this->addError(GetMessage(
+					'OBX_SMS_PROV_EMAIL_ERROR_1',
+					array('#NAME#' => $this->PROVIDER_NAME())
+				), 1);
+			return false;
+		}
+		$phoneNumber = $this->checkPhoneNumber($telNo);
+		if($phoneNumber == null) {
+			$this->addError(GetMessage('OBX_SMS_PROV_EMAIL_ERROR_2'), 2);
+			return false;
+		}
+		mail(
+			$email,
+			GetMessage('OBX_SMS_PROV_EMAIL_SEND_SUBJ', array('#NUMBER#' => $phoneNumber)),
+			GetMessage('OBX_SMS_PROB_EMAIL_SEND_TEXT')."\n".$text
+		);
+		return true;
 	}
 
 	public function requestMessageStatus($messageID) {

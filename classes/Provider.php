@@ -10,7 +10,7 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-namespace OBX\Sms;
+namespace OBX\Sms\Provider;
 
 use OBX\Core\CMessagePoolDecorator;
 
@@ -144,6 +144,20 @@ abstract class Provider extends CMessagePoolDecorator {
 		}
 	}
 
+	public function checkPhoneNumber($rawPhoneNumber, &$coutryCode = null) {
+		$rawPhoneNumber = str_replace(array(' ', '	', '-', '(', ')'), '', $rawPhoneNumber);
+		$regPhone = '~((?:\+)?[\d]{1,3}|8)([\d]{10})~';
+		$phoneNumber = null;
+		if( preg_match($regPhone, $rawPhoneNumber, $arMatches) ) {
+			if($arMatches[1] == 9) $arMatches[1] = '7';
+			if($coutryCode!==null) {
+				$coutryCode = $arMatches[1];
+			}
+			$phoneNumber = $arMatches[2];
+		}
+		return $phoneNumber;
+	}
+
 	/**
 	 * Простая отправка сообщений
 	 * один номер - один текст сообщения
@@ -180,16 +194,28 @@ abstract class Provider extends CMessagePoolDecorator {
 	abstract public function requestMessageStatus($messageID);
 
 
-
+	/**
+	 * Получить объект провайдера по умолчанию
+	 * @return Provider
+	 */
 	final static public function getCurrent() {
-		$curProvID = \COption::GetOptionString("obx.sms", "PROVIDER_SELECTED");
+		$curProvID = \COption::GetOptionString('obx.sms', 'PROVIDER_SELECTED');
 		if (strlen($curProvID) > 0) {
 			return self::factory($curProvID);
 		}
 	}
+
+	/**
+	 * Задать провайдера по умолчанию
+	 * Возвращает true в случае успешной установки или false в случае если $providerID не найден в списке провайдеров
+	 * @param $providerID
+	 * @return bool
+	 */
 	final static public function setCurrent($providerID) {
 		if (array_key_exists($providerID, self::$_arProvidersList)) {
-			\COption::SetOptionString("obx.sms", "PROVIDER_SELECTED", $providerID);
+			\COption::SetOptionString('obx.sms', 'PROVIDER_SELECTED', $providerID);
+			return true;
 		}
+		return false;
 	}
 }
