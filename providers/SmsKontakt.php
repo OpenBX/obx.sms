@@ -29,6 +29,8 @@ class SmsKontakt extends Provider {
 	const URL_INFO = 'http://sms-kontakt.ru/api/get_info/';
 	const URL_SEND = 'http://sms-kontakt.ru/api/message/send/';
 
+	protected $sign;
+
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
@@ -79,8 +81,11 @@ class SmsKontakt extends Provider {
 		return 1;
 	}
 
-	public function send($telNo, $text, $arFields = array()) {
-		$phoneNumber = $this->checkPhoneNumber($telNo);
+	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+		if( $countryCode != '7') {
+			$this->addError(GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_ERROR_1'));
+			return false;
+		}
 		$result = $this->MessageSend($phoneNumber, $text);
 		$arResult = json_decode($result, true);
 		if ($arResult[0]['result'] == 'success') {
@@ -90,10 +95,6 @@ class SmsKontakt extends Provider {
 			return false;
 		}
 	}
-
-	protected $sign;
-
-
 
 	function SendPostRequest($url, $headers, $post_body) {
 		$ch = curl_init();

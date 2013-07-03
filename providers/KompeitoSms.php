@@ -89,8 +89,8 @@ class KompeitoSms extends Provider {
 		return $this->getStatus($messageID);
 	}
 
-	public function send($to, $message, $arFields = array()) {
-		return $this->sendEx($this->from, $to, $message);
+	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+		return $this->sendEx($this->from, $countryCode.$phoneNumber, $text);
 	}
 
 	public function sendSingle($to, $message) {

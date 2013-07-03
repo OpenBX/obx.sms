@@ -31,6 +31,9 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 	protected $_Settings = null;
 
+	protected $_lastSentMessage = null;
+	const DEFAULT_COUNTRY_CODE = '7';
+
 	/**
 	 * В конструкторе обязательно надо определить переменную $this->_Settings
 	 */
@@ -111,7 +114,8 @@ abstract class Provider extends CMessagePoolDecorator {
 	 * @return bool
 	 */
 	final static public function includeProviders() {
-		$_providerDir = $_SERVER["DOCUMENT_ROOT"] . BX_ROOT . "/php_interface/obx.sms";
+		$_providerDir = $_SERVER['DOCUMENT_ROOT'] . BX_ROOT . '/php_interface/obx.sms';
+		$_providerLangDir = $_providerDir.'/lang/'.LANGUAGE_ID;
 
 		if (!is_dir($_providerDir)) {
 			return false;
@@ -122,15 +126,15 @@ abstract class Provider extends CMessagePoolDecorator {
 			if (
 					$elementOfDir != ".."
 					&& $elementOfDir != "."
-					&& substr($elementOfDir, strlen($elementOfDir) - 4, strlen($elementOfDir)) == ".php"
+					&& substr($elementOfDir, strlen($elementOfDir) - 4, strlen($elementOfDir)) == '.php'
 			) {
 				$arFilesList[] = $elementOfDir;
 			}
 		}
 
 		foreach ($arFilesList as $providerFileName) {
-			$eventFilePath = $_providerDir . "/" . $providerFileName;
-			@include $eventFilePath;
+			__IncludeLang($_providerLangDir.'/'.$providerFileName);
+			@include $_providerDir.'/'.$providerFileName;
 		}
 		return self::$_arProvidersList;
 	}
@@ -159,14 +163,15 @@ abstract class Provider extends CMessagePoolDecorator {
 		}
 	}
 
-	public function checkPhoneNumber($rawPhoneNumber, &$coutryCode = null) {
+	public function checkPhoneNumber($rawPhoneNumber, &$countryCode = null) {
 		$rawPhoneNumber = str_replace(array(' ', '	', '-', '(', ')'), '', $rawPhoneNumber);
 		$regPhone = '~((?:\+)?[\d]{1,3}|8)([\d]{10})~';
 		$phoneNumber = null;
 		if( preg_match($regPhone, $rawPhoneNumber, $arMatches) ) {
-			if($arMatches[1] == 9) $arMatches[1] = '7';
-			if($coutryCode!==null) {
-				$coutryCode = $arMatches[1];
+			if($arMatches[1] == 8) $arMatches[1] = '7';
+			$countryCode = $arMatches[1];
+			if(strpos($countryCode, '+')!==false) {
+				$countryCode = substr($countryCode, 1);
 			}
 			$phoneNumber = $arMatches[2];
 		}
@@ -181,7 +186,41 @@ abstract class Provider extends CMessagePoolDecorator {
 	 * @param array $arFields
 	 * @return bool
 	 */
-	abstract public function send($telNo, $text, $arFields = array());
+	public function send($telNo, $text, $arFields = array()) {
+		$phoneNumber = $this->checkPhoneNumber($telNo, $countryCode);
+		if($phoneNumber == null) {
+			$this->addError(GetMessage('OBX_SMS_PROVIDER_ERROR_801'), 801);
+			return false;
+		}
+		if( empty($countryCode) ) $countryCode = static::DEFAULT_COUNTRY_CODE;
+		$bSuccess = $this->_send($phoneNumber, $text, $arFields, $countryCode);
+		$this->_lastSentMessage = array(
+			'COUNTRY' => $countryCode,
+			'PHONE' => $phoneNumber,
+			'TEXT' => $text,
+			'SUCCESS' => $bSuccess?'Y':'N',
+		);
+		if(!$bSuccess) $this->_lastSentMessage['ERROR'] = $this->getLastError();
+		return $bSuccess;
+	}
+
+	/**
+	 * Эта функция переопределяется у каждого провайдера отдельно
+	 * @param $telNo
+	 * @param $text
+	 * @param $arFields
+	 * @param string $countryCode
+	 * @return mixed
+	 */
+	abstract protected function _send(&$telNo, &$text, &$arFields, &$countryCode);
+
+	/**
+	 * Вернуть последнее отправленное сообщение
+	 * @return array
+	 */
+	public function getLastSentMessage() {
+		return $this->_lastSentMessage;
+	}
 
 	/**
 	 * TODO:

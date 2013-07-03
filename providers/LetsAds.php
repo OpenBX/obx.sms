@@ -84,8 +84,8 @@ class LetsAds extends Provider {
 		return $this->getStatus($messageID);
 	}
 
-	public function send($to, $message, $arFields = array()) {
-		return $this->sendEx($this->arSettings['FROM']['VALUE'], $to, $message);
+	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+		return $this->sendEx($this->_Settings->getOption('FROM'), $countryCode.$phoneNumber, $text);
 	}
 
 	public function sendSingle($to, $message) {

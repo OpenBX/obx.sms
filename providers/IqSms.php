@@ -52,7 +52,7 @@ class IqSms extends Provider {
 		return 0;
 	}
 
-	public function send($telNo, $text, $arFields = array()) {
+	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
 
 	}
 

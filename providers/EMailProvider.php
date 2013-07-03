@@ -43,7 +43,7 @@ class EMailProvider extends Provider {
 		return 0;
 	}
 
-	public function send($telNo, $text, $arFields = array()) {
+	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
 		$this->_Settings->syncSettings();
 		$email = $this->_Settings->getOption('EMAIL');
 		if(empty($email)) {
@@ -51,11 +51,6 @@ class EMailProvider extends Provider {
 					'OBX_SMS_PROV_EMAIL_ERROR_1',
 					array('#NAME#' => $this->PROVIDER_NAME())
 				), 1);
-			return false;
-		}
-		$phoneNumber = $this->checkPhoneNumber($telNo);
-		if($phoneNumber == null) {
-			$this->addError(GetMessage('OBX_SMS_PROV_EMAIL_ERROR_2'), 2);
 			return false;
 		}
 		mail(
