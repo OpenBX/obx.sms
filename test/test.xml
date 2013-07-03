@@ -9,7 +9,7 @@
 	<testsuites>
 		<testsuite name="OBX_Sms_API_Tests">
 			<!-- <directory></directory> -->
-			<file>First.php</file>
+			<file>ProviderSmsKontakt.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>

@@ -10,41 +10,53 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\SmsSender;
+namespace OBX\Sms\Provider;
 
-class IqSms extends SmsSender {
+use OBX\Core\Settings\Tab;
 
-	protected $PROVIDER_ID = "IQSMS";
-	protected $PROVIDER_NAME = "Базовый провайдер";
-	protected $PROVIDER_DESCRIPTION = "Dummy provider class <a href='javascript:void(0)'>test link</a>";
+IncludeModuleLangFile(__FILE__);
 
-	protected $arSettings = array(
-		"LOGIN" => array(
-			"NAME" => "Имя пользователя",
-			"TYPE" => "TEXT",
-			"VALUE" => ""
-		),
-		"PASS" => array(
-			"NAME" => "Пароль",
-			"TYPE" => "TEXT",
-			"VALUE" => "PASSWORD",
-		),
-		"FROM" => array(
-			"NAME" => "Имя или номер отправителя",
-			"TYPE" => "TEXT",
-			"VALUE" => "BASE_TEST"
-		)
-	);
+class IqSms extends Provider {
 
-	public function requestBalance() {
+	protected $PROVIDER_ID = 'IQSMS';
+	protected $PROVIDER_NAME = null;
+	protected $PROVIDER_DESCRIPTION = null;
+
+	public function __construct() {
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_IQSMS_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_IQSMS_DESCRIPTION');
+		$this->_Settings = new Tab(
+			'obx.sms',
+			'PROVIDER_'.$this->PROVIDER_ID(),
+			array(
+				'LOGIN' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_LOGIN'),
+					'TYPE' => 'STRING',
+					'VALUE' => ''
+				),
+				'PASS' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_PASS'),
+					'TYPE' => 'PASSWORD',
+					'VALUE' => '',
+				),
+				'FROM' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_FROM'),
+					'TYPE' => 'STRING',
+					'VALUE' => ''
+				)
+			)
+		);
+	}
+
+	public function getBalance() {
 		return 0;
 	}
 
-	public function send($telNo, $text) {
+	public function send($telNo, $text, $arFields = array()) {
 
 	}
 
-	public function requestMessageStatus($messageID) {
+	public function getMessageStatus($messageID) {
 		return 1;
 	}
 
@@ -52,7 +64,7 @@ class IqSms extends SmsSender {
 	const ERROR_EMPTY_API_PASSWORD = 'Empty api password not allowed';
 	const ERROR_EMPTY_RESPONSE = 'errorEmptyResponse';
 
-	protected $_apiLogin = "";
+	protected $_apiLogin = '';
 
 	protected $_apiPassword = null;
 

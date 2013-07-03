@@ -16,6 +16,10 @@ use OBX\Core\CMessagePoolDecorator;
 
 abstract class Provider extends CMessagePoolDecorator {
 	static protected $_arProvidersList;
+	/**
+	 * @var self (Singleton)
+	 */
+	static protected $_arProviderListClassIndex;
 
 	protected $PROVIDER_ID = "";
 	protected $PROVIDER_NAME = "";
@@ -32,14 +36,16 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 	abstract protected function __construct();
 
-	final protected function __clone() {
-	}
+	final protected function __clone() {}
 
 	public function getSettings($bReturnArray = false) {
 		if($bReturnArray) {
 			return $this->_Settings->getSettings();
 		}
 		return $this->_Settings;
+	}
+	public function syncSettings() {
+		$this->_Settings->syncSettings();
 	}
 
 	public function saveSettings($arSettings) {
@@ -76,20 +82,29 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 	final static public function registerProvider() {
 		$className = get_called_class();
+		/**
+		 * @var Provider $Provider
+		 */
 		$Provider = new $className;
-		self::addProvider($Provider);
+		if ($Provider instanceof self) {
+			if (!array_key_exists($Provider->PROVIDER_ID(), self::$_arProvidersList)) {
+				/** @var Provider $Provider */
+				$Provider->syncSettings();
+				self::$_arProvidersList[$Provider->PROVIDER_ID()] = $Provider;
+				self::$_arProviderListClassIndex[$className] = $Provider;
+			}
+		}
 	}
 
 	/**
-	 * @param self $Provider
+	 * @return null | self
 	 */
-	final static protected function addProvider(self $Provider) {
-		if ($Provider instanceof self) {
-			if (!array_key_exists($Provider->PROVIDER_ID(), self::$_arProvidersList)) {
-				$Provider->getSettings();
-				self::$_arProvidersList[$Provider->PROVIDER_ID()] = $Provider;
-			}
+	final static public function getProvider() {
+		$className = get_called_class();
+		if( array_key_exists($className, self::$_arProviderListClassIndex) ) {
+			return self::$_arProviderListClassIndex[$className];
 		}
+		return null;
 	}
 
 	/**
@@ -183,15 +198,15 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 
 	/**
-	 * @return mixed
+	 * @return float
 	 */
-	abstract public function requestBalance();
+	abstract public function getBalance();
 
 	/**
 	 * @param $messageID
 	 * @return mixed
 	 */
-	abstract public function requestMessageStatus($messageID);
+	abstract public function getMessageStatus($messageID);
 
 
 	/**
@@ -208,7 +223,7 @@ abstract class Provider extends CMessagePoolDecorator {
 	/**
 	 * Задать провайдера по умолчанию
 	 * Возвращает true в случае успешной установки или false в случае если $providerID не найден в списке провайдеров
-	 * @param $providerID
+	 * @param string $providerID
 	 * @return bool
 	 */
 	final static public function setCurrent($providerID) {

@@ -65,8 +65,8 @@ class SmsKontakt extends Provider {
 		$this->sign = md5($this->_Settings->getOption('USER_PHONE') . $this->_Settings->getOption('API_KEY'));
 	}
 
-	public function requestBalance() {
-		$arResult = json_decode($this->getBallance(), true);
+	public function getBalance() {
+		$arResult = json_decode($this->_getBalance(), true);
 		if ($arResult[0]['result'] == 'success') {
 			return $arResult[0]['describe'];
 		} else {
@@ -75,12 +75,13 @@ class SmsKontakt extends Provider {
 		}
 	}
 
-	public function requestMessageStatus($messageID) {
+	public function getMessageStatus($messageID) {
 		return 1;
 	}
 
 	public function send($telNo, $text, $arFields = array()) {
-		$result = $this->MessageSend($telNo, $text);
+		$phoneNumber = $this->checkPhoneNumber($telNo);
+		$result = $this->MessageSend($phoneNumber, $text);
 		$arResult = json_decode($result, true);
 		if ($arResult[0]['result'] == 'success') {
 			return true;
@@ -111,18 +112,22 @@ class SmsKontakt extends Provider {
 
 		$user_phone = $curSettings['USER_PHONE']['VALUE'];
 		$sender_id = $curSettings['SENDER_ID']['VALUE'];
-		$test = $curSettings['TEST']['VALUE'];
+		$test = ($curSettings['TEST']['VALUE']=='Y')?1:0;
 
 
 		$http_body = 'user_phone=' . $user_phone . '&sign=' .
 			$this->sign . '&phone_to=' . $phone_to . '&message=' . $message . '&sender_id=' . $sender_id . '&test=' . $test;
 		$headers[] = 'Content-Type: text/xml; charset=utf-8';
 		$headers[] = 'Content-Length: ' . strlen($http_body);
+		if(!defined('BX_UTF') || BX_UTF == false) {
+			$http_body = iconv(LANG_CHARSET, 'UTF-8', $http_body);
+		}
+
 		$server_answer = $this->SendPostRequest(self::URL_SEND, $headers, $http_body);
 		return $server_answer;
 	}
 
-	protected function getBallance() {
+	protected  function _getBalance() {
 		//?user_phone=<номер_телефона>&sign=<подпись_сообщения>&info=balance
 		$curSettings = $this->_Settings->getSettings();
 
@@ -130,11 +135,10 @@ class SmsKontakt extends Provider {
 		$sender_id = $curSettings['SENDER_ID']['VALUE'];
 		$test = $curSettings['TEST']['VALUE'];
 
-
-		$http_body = 'user_phone=' . $user_phone . '&sign=' .
-			$this->sign . '&info=balance';
-		$headers[] = 'Content-Type: text/xml; charset=utf-8';
+		$http_body = 'user_phone='.$user_phone . '&sign='.$this->sign .'&info=balance';
 		$headers[] = 'Content-Length: ' . strlen($http_body);
+		$headers[] = 'Content-Type: text/xml; charset=utf-8';
+
 		$server_answer = $this->SendPostRequest(self::URL_INFO, $headers, $http_body);
 		return $server_answer;
 	}

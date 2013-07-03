@@ -68,7 +68,6 @@ $APPLICATION->AddHeadScript("/bitrix/modules/obx.sms/js/jquery-1.8.2.min.js");
 				 * @var \OBX\Core\Settings\ATab $arTabCtrl
 				 */
 				$arTabCtrl = &$arTab['CONTROLLER'];
-				$arTabCtrl->saveTabData();
 				$arTabCtrl->showMessages();
 				$arTabCtrl->showErrors();
 				$arTabCtrl->showTabContent();

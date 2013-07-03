@@ -1,4 +1,4 @@
-<?
+<?php
 /*******************************************
  ** @product OBX:Market Bitrix Module     **
  ** @authors                              **
@@ -10,37 +10,54 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-use OBX\Sms\SmsSender;
+namespace OBX\Sms\Provider;
 
-class KompeitoSms extends SmsSender {
+use OBX\Core\Settings\Tab;
+
+class KompeitoSms extends Provider {
 
 	/*
 	 * Объявление провайдера
 	 */
-	protected $PROVIDER_ID = "KOMPEITOSMS";
-	protected $PROVIDER_NAME = "KompeitoSms - Смс-шлюз";
-	protected $PROVIDER_DESCRIPTION = "Необходима регистрация на <a href='http://kompeito.ru/'>сайте поставщика</a>";
+	protected $PROVIDER_ID = 'KOMPEITOSMS';
+	protected $PROVIDER_NAME = null;
+	protected $PROVIDER_DESCRIPTION = null;
 
-	/*
-	 * Параметры
-	 */
-	protected $arSettings = array(
-		"LOGIN" => array(
-			"NAME" => "Имя пользователя",
-			"TYPE" => "TEXT",
-			"VALUE" => ""
-		),
-		"PASS" => array(
-			"NAME" => "Пароль",
-			"TYPE" => "TEXT",
-			"VALUE" => "",
-		),
-		"FROM" => array(
-			"NAME" => "Имя или номер отправителя",
-			"TYPE" => "TEXT",
-			"VALUE" => "sms_test"
-		)
-	);
+
+	public function __construct() {
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_KOMPEITOSMS_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_KOMPEITOSMS_DECRIPTION');
+		$this->_Settings = new Tab(
+			'obx.sms',
+			'PROVIDER_'.$this->PROVIDER_ID(),
+			array(
+				'LOGIN' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN'),
+					'TYPE' => 'STRING',
+					'VALUE' => '',
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN_PH')
+					)
+				),
+				'PASS' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_PASS'),
+					'TYPE' => 'PASSWORD',
+					'VALUE' => '',
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_PASS_PH')
+					)
+				),
+				'FROM' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM'),
+					'TYPE' => 'STRING',
+					'VALUE' => '',
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROV_LETSADS_SETT_FROM_PH')
+					)
+				)
+			)
+		);
+	}
 
 
 	const STATE_QUEUED = 0;
@@ -58,7 +75,7 @@ class KompeitoSms extends SmsSender {
 	const DELIVERY_REJECTED = 5;
 	const DELIVERY_FAILED = 6;
 
-	const ADDR = "https://cabinet.kompeito.ru:443/api/xml";
+	const ADDR = 'https://cabinet.kompeito.ru:443/api/xml';
 
 	/*
 		public function __construct($user, $pass, $from=null) {
@@ -67,16 +84,12 @@ class KompeitoSms extends SmsSender {
 			$this->pass = $pass;
 		}
 	*/
-	public function requestBalance() {
-		$result = $this->getBalance();
-		return $result["money"];
-	}
 
-	public function requestMessageStatus($messageID) {
+	public function getMessageStatus($messageID) {
 		return $this->getStatus($messageID);
 	}
 
-	public function send($to, $message) {
+	public function send($to, $message, $arFields = array()) {
 		return $this->sendEx($this->from, $to, $message);
 	}
 
@@ -112,7 +125,7 @@ class KompeitoSms extends SmsSender {
 	}
 
 	public function getStatus($ids) {
-		$xml = new \SimpleXMLElement("<getStatus></getStatus>");
+		$xml = new \SimpleXMLElement('<getStatus></getStatus>');
 		$this->addAuth($xml);
 		if (is_array($ids)) {
 			foreach ($ids as $i => $id) {
@@ -123,7 +136,7 @@ class KompeitoSms extends SmsSender {
 		}
 		$response = $this->doSend($xml);
 		$result = array();
-		if ($this->starts_with("<?xml", $response)) {
+		if ($this->starts_with('<?xml', $response)) {
 			$xmlRes = new \SimpleXMLElement($response);
 			foreach ($xmlRes->sms as $tmp) {
 				$tmpResult = array();
@@ -132,8 +145,8 @@ class KompeitoSms extends SmsSender {
 				$parts = array();
 				foreach ($tmp->part as $j => $p) {
 					$partData = array();
-					$partData['id'] = (string)$p["id"];
-					$partData['status'] = (int)$p["status"];
+					$partData['id'] = (string)$p['id'];
+					$partData['status'] = (int)$p['status'];
 					if ($p->completionTime) {
 						$partData['fin'] = date_create($p->completionTime);
 					}
@@ -149,11 +162,16 @@ class KompeitoSms extends SmsSender {
 	}
 
 	public function getBalance() {
-		$xml = new \SimpleXMLElement("<getBalance></getBalance>");
+		$result = $this->requestBalance();
+		return $result['money'];
+	}
+
+	public function requestBalance() {
+		$xml = new \SimpleXMLElement('<getBalance></getBalance>');
 		$this->addAuth($xml);
 		$response = $this->doSend($xml);
 		$result = array();
-		if ($this->starts_with("<?xml", $response)) {
+		if ($this->starts_with('<?xml', $response)) {
 			$xmlResult = new \SimpleXMLElement($response);
 			$result['money'] = (double)$xmlResult->money;
 			$result['credits'] = (double)$xmlResult->credits;
@@ -167,7 +185,7 @@ class KompeitoSms extends SmsSender {
 	}
 
 	public function sendEx($from, $to, $message) {
-		$xmlResult = new \SimpleXMLElement("<sendSms></sendSms>");
+		$xmlResult = new \SimpleXMLElement('<sendSms></sendSms>');
 		$this->addAuth($xmlResult);
 
 		$xmlResult->from = $from;
@@ -185,7 +203,7 @@ class KompeitoSms extends SmsSender {
 
 		$response = $this->doSend($xmlResult);
 		$result = array();
-		if ($this->starts_with("<?xml", $response)) {
+		if ($this->starts_with('<?xml', $response)) {
 			$xml = new \SimpleXMLElement($response);
 			$result['count'] = (int)$xml->count;
 			$result['data'] = array();
@@ -193,7 +211,7 @@ class KompeitoSms extends SmsSender {
 				$a = $tmp->attributes();
 				$c = $tmp->children();
 				$rep = array(
-					"id" => (string)($a["id"]),
+					'id' => (string)($a['id']),
 					'to' => (string)$a['phone'],
 					'status' => (int)$a['status'],
 					'credits' => (double)$c['credits'],
@@ -212,8 +230,8 @@ class KompeitoSms extends SmsSender {
 	}
 
 	private function addAuth($xml) {
-		$xml->auth->login = $this->arSettings["LOGIN"]["VALUE"];
-		$xml->auth->pass = $this->arSettings["PASS"]["VALUE"];
+		$xml->auth->login = $this->arSettings['LOGIN']['VALUE'];
+		$xml->auth->pass = $this->arSettings['PASS']['VALUE'];
 	}
 
 	private function doSend($xml) {
@@ -232,7 +250,7 @@ class KompeitoSms extends SmsSender {
 		curl_close($ch);
 
 		if ($info['http_code'] != 200) {
-			return "HTTP: " . $info['http_code'];
+			return 'HTTP: ' . $info['http_code'];
 		}
 
 		return $result;

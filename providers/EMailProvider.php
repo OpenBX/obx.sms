@@ -20,6 +20,8 @@ class EMailProvider extends Provider {
 	protected $PROVIDER_ID = 'EMAIL';
 
 	protected function __construct() {
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_EMAIL_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_EMAIL_DESCRIPTION');
 		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID,
@@ -34,12 +36,10 @@ class EMailProvider extends Provider {
 				),
 			)
 		);
-		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_EMAIL_NAME');
-		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_EMAIL_DESCRIPTION');
 	}
 
 
-	public function requestBalance() {
+	public function getBalance() {
 		return 0;
 	}
 
@@ -66,7 +66,7 @@ class EMailProvider extends Provider {
 		return true;
 	}
 
-	public function requestMessageStatus($messageID) {
+	public function getMessageStatus($messageID) {
 		return 1;
 	}
 }

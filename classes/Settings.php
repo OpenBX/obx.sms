@@ -22,7 +22,7 @@ class ModuleSettingsMainTab extends SettingsTab {
 
 	public function showTabContent() {
 		$arProvidersList = Provider::getProvidersList();
-		$curProviderString = \COption::GetOptionString('obx.sms', 'PROV_SELECTED', '');
+		$curProviderString = Provider::getCurrent()->PROVIDER_ID();
 		if (!strlen($curProviderString) > 0) {
 			$curProviderString = 'EMAIL';
 		}
