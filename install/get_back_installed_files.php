@@ -30,6 +30,7 @@ if( is_file($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/obx.core/install/get_bac
 }
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/modules/obx.core");
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/obx.core", $_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/obx.sms/install/modules/", true, true, FALSE, "modules");
+DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/");
 if( ! is_dir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms") ) {
 	@mkdir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms", BX_DIR_PERMISSIONS, true);
 }
