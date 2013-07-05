@@ -11,8 +11,4 @@
 
 require dirname(__FILE__)."/../../obx.core/classes/Build.php";
 $build = new OBX_Build("obx.sms");
-$build->generateInstallCode();
-$build->generateUnInstallCode();
-$build->generateBackInstallCode();
-$build->backInstallResources();
-$build->generateMD5FilesList();
+$build->processCommandOptions();
