@@ -10,5 +10,5 @@ create table if not exists obx_sms_log (
 	STATUS varchar(255) not null default 'none',
 	primary key(ID),
 	unique obx_sms_log(PROVIDER_ID,MESSAGE_ID),
-	KEY `TEL_NO` (`TEL_NO`)
+	KEY TEL_NO(TEL_NO)
 );

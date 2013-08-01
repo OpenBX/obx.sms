@@ -21,6 +21,29 @@ class obx_sms extends CModule
 
 	protected $installDir = null;
 	protected $moduleDir = null;
+	protected $bxModulesDir = null;
+	protected $arErrors = array();
+	protected $arWarnings = array();
+	protected $arMessages = array();
+	protected $bSuccessInstallDB = false;
+	protected $bSuccessInstallFiles = false;
+	protected $bSuccessInstallDeps = false;
+	protected $bSuccessInstallEvents = false;
+	protected $bSuccessInstallTasks = true;
+	protected $bSuccessInstallData = false;
+	protected $bSuccessUnInstallDB = false;
+	protected $bSuccessUnInstallFiles = false;
+	protected $bSuccessUnInstallDeps = false;
+	protected $bSuccessUnInstallEvents = false;
+	protected $bSuccessUnInstallTasks = true;
+	protected $bSuccessUnInstallData = false;
+
+	const DB = 1;
+	const FILES = 2;
+	const DEPS = 4;
+	const EVENTS = 8;
+	const TASKS = 16;
+	const TARGETS = 31;
 
 	public function obx_sms() {
 		$this->installDir = str_replace(array("\\", "//"), "/", __FILE__);
@@ -28,6 +51,7 @@ class obx_sms extends CModule
 		//8 == strlen("/install")
 		$this->installDir = substr($this->installDir , 0, strlen($this->installDir ) - 10);
 		$this->moduleDir = substr($this->installDir , 0, strlen($this->installDir ) - 8);
+		$this->bxModulesDir = $_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules";
 
 		$arModuleInfo = array();
 		$arModuleInfo = include($this->installDir."/version.php");
@@ -40,73 +64,179 @@ class obx_sms extends CModule
 		$this->PARTNER_URI = GetMessage("OBX_SMS_PARTNER_URI");
 	}
 
-	public function DoInstall() {
-		global $APPLICATION, $step, $obModule;
-		$errors = $this->InstallEvents();
-		if (!is_array($errors)){
-			RegisterModule($this->MODULE_ID);
-		}else{
-			die(GetMessage("INSTALL_ERROR")."\n"."<pre>".print_r($errors, true)."</pre>");
-			return false;
-		}
+	public function getErrors() {
+		return $this->arErrors;
 	}
 
-	public function DoUninstall() {
-		global $APPLICATION, $step, $obModule;
-		$errors = $this->UnInstallEvents();
-		if (!is_array($errors)){
-			UnRegisterModule($this->MODULE_ID);
-		}else{
-			die(GetMessage("UNINSTALL_ERROR")."\n"."<pre>".print_r($errors, true)."</pre>");
-			return false;
+	public function getWarnings() {
+		return $this->arWarnings;
+	}
+
+	public function getMessages() {
+		return $this->arMessages;
+	}
+
+	/**
+	 * @param int $maskTarget
+	 * @return bool
+	 */
+	public function isInstallationSuccess($maskTarget) {
+		$bSuccess = true;
+		if($maskTarget & self::DB) {
+			$bSuccess = $this->bSuccessInstallDB && $bSuccess;
 		}
+		if($maskTarget & self::FILES) {
+			$bSuccess = $this->bSuccessInstallFiles && $bSuccess;
+		}
+		if($maskTarget & self::DEPS) {
+			$bSuccess = $this->bSuccessInstallDeps && $bSuccess;
+		}
+		if($maskTarget & self::EVENTS) {
+			$bSuccess = $this->bSuccessInstallEvents && $bSuccess;
+		}
+		if($maskTarget & self::TASKS) {
+			$bSuccess = $this->bSuccessInstallTasks && $bSuccess;
+		}
+		return $bSuccess;
+	}
 
+	/**
+	 * @param int $maskTarget
+	 * @return bool
+	 */
+	public function isUnInstallationSuccess($maskTarget) {
+		$bSuccess = true;
+		if($maskTarget & self::DB) {
+			$bSuccess = $this->bSuccessUnInstallDB && $bSuccess;
+		}
+		if($maskTarget & self::FILES) {
+			$bSuccess = $this->bSuccessUnInstallFiles && $bSuccess;
+		}
+		if($maskTarget & self::DEPS) {
+			$bSuccess = $this->bSuccessUnInstallDeps && $bSuccess;
+		}
+		if($maskTarget & self::EVENTS) {
+			$bSuccess = $this->bSuccessUnInstallEvents && $bSuccess;
+		}
+		if($maskTarget & self::TASKS) {
+			$bSuccess = $this->bSuccessUnInstallTasks && $bSuccess;
+		}
+		return $bSuccess;
+	}
 
+	public function DoInstall() {
+		$bSuccess = true;
+		$bSuccess = $this->InstallDB() && $bSuccess;
+		$bSuccess = $this->InstallFiles() && $bSuccess;
+		$bSuccess = $this->InstallDeps() && $bSuccess;
+		$bSuccess = $this->InstallEvents() && $bSuccess;
+		$bSuccess = $this->InstallTasks() && $bSuccess;
+		if($bSuccess) {
+			if( !IsModuleInstalled($this->MODULE_ID) ) {
+				RegisterModule($this->MODULE_ID);
+			}
+			$this->InstallData();
+		}
+		return $bSuccess;
+	}
+	public function DoUninstall() {
+		$bSuccess = true;
+		$bSuccess = $this->UnInstallTasks() && $bSuccess;
+		$bSuccess = $this->UnInstallEvents() && $bSuccess;
+		//$bSuccess = $this->UnInstallDeps() && $bSuccess;
+		$bSuccess = $this->UnInstallFiles() && $bSuccess;
+		$bSuccess = $this->UnInstallDB() && $bSuccess;
+		if($bSuccess) {
+			if( IsModuleInstalled($this->MODULE_ID) ) {
+				UnRegisterModule($this->MODULE_ID);
+			}
+		}
+		return $bSuccess;
+	}
+	public function InstallFiles() {
+		$this->bSuccessInstallFiles = true;
+		if (is_file($this->installDir . "/install_files.php")) {
+			require($this->installDir . "/install_files.php");
+		}
+		else {
+			$this->bSuccessInstallFiles = false;
+		}
+		return $this->bSuccessInstallFiles;
+	}
+	public function UnInstallFiles() {
+		$this->bSuccessUnInstallFiles = true;
+		if (is_file($this->installDir . "/uninstall_files.php")) {
+			require($this->installDir . "/uninstall_files.php");
+		}
+		else {
+			$this->bSuccessUnInstallFiles = false;
+		}
+		return $this->bSuccessUnInstallFiles;
 	}
 
 	public function InstallDB() {
-		global $APPLICATION, $DB, $DBType;
-		if(defined("MYSQL_TABLE_TYPE") && strlen(MYSQL_TABLE_TYPE) > 0) {
-			$DB->Query("SET table_type = '".MYSQL_TABLE_TYPE."'", true);
+		global $DB, $DBType;
+		$this->bSuccessInstallDB = true;
+		if( is_file($this->installDir.'/db/'.$DBType.'/install.sql') ) {
+			$this->prepareDBConnection();
+			$arErrors = $DB->RunSQLBatch($this->installDir.'/db/'.$DBType.'/install.sql');
+			if( is_array($arErrors) && count($arErrors)>0 ) {
+				$this->arErrors = $arErrors;
+				$this->bSuccessInstallDB = false;
+			}
 		}
-		$arErrors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/obx.sms/install/db/".$DBType."/install.sql");
-		return $arErrors;
+		else {
+			$this->bSuccessInstallDB = false;
+		}
+		return $this->bSuccessInstallDB;
 	}
-
 	public function UnInstallDB() {
+		global $DB, $DBType;
+		$this->bSuccessUnInstallDB = true;
+		if( is_file($this->installDir.'/db/'.$DBType.'/uninstall.sql') ) {
+			$this->prepareDBConnection();
+			$arErrors = $DB->RunSQLBatch($this->installDir.'/db/'.$DBType.'/uninstall.sql');
+			if( is_array($arErrors) && count($arErrors)>0 ) {
+				$this->arErrors = $arErrors;
+				$this->bSuccessUnInstallDB = false;
+			}
+		}
+		else {
+			$this->bSuccessUnInstallDB = false;
+		}
+		return $this->bSuccessUnInstallDB;
+	}
+
+	protected function prepareDBConnection() {
 		global $APPLICATION, $DB, $DBType;
-		if(defined("MYSQL_TABLE_TYPE") && strlen(MYSQL_TABLE_TYPE) > 0) {
-			$DB->Query("SET table_type = '".MYSQL_TABLE_TYPE."'", true);
+		if (defined('MYSQL_TABLE_TYPE') && strlen(MYSQL_TABLE_TYPE) > 0) {
+			$DB->Query("SET table_type = '" . MYSQL_TABLE_TYPE . "'", true);
 		}
-		$arErrors = $DB->RunSQLBatch($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/obx.sms/install/db/".$DBType."/uninstall.sql");
-		return $arErrors;
+		if (defined('BX_UTF') && BX_UTF === true) {
+			$DB->Query('SET NAMES "utf8"');
+			//$DB->Query('SET sql_mode=""');
+			$DB->Query('SET character_set_results=utf8');
+			$DB->Query('SET collation_connection = "utf8_unicode_ci"');
+		}
 	}
 
-	public function InstallEvents() {
-		$errorPool = array();
-		$_DB_ = $this->InstallDB();
-		if ($_DB_ !== false){
-			$errorPool[] = $_DB_;
-		}
-		if (count($errorPool) > 0)
-			return $errorPool;
-		return true;
-	}
-	public function UnInstallEvents() {
-		$errorPool = array();
-		$_DB_ = $this->UnInstallDB();
-		if ($_DB_ !== false){
-			$errorPool[] = $_DB_;
-		}
-		if (count($errorPool) > 0)
-			return $errorPool;
-		return true;
-	}
-	public function InstallFiles() { return true; }
-	public function UnInstallFiles() { return true; }
-	public function InstallData() { return true; }
-	public function UnInstallData() { return true; }
+	public function InstallEvents() { $this->bSuccessInstallEvents = true; return $this->bSuccessInstallEvents; }
+	public function UnInstallEvents() { $this->bSuccessUnInstallEvents = true; return $this->bSuccessUnInstallEvents; }
+	public function InstallTasks() { $this->bSuccessInstallTasks = true; return $this->bSuccessInstallTasks; }
+	public function UnInstallTasks() { $this->bSuccessUnInstallTasks = true; return $this->bSuccessUnInstallTasks; }
+	public function InstallData() { $this->bSuccessInstallData = true; return $this->bSuccessInstallData; }
+	public function UnInstallData() { $this->bSuccessUnInstallData = true; return $this->bSuccessUnInstallData; }
 
+
+	protected function getDepsList() {
+		$arDepsList = array();
+		if( is_dir($this->installDir."/modules") && is_file($this->installDir.'/dependencies.php') ) {
+			$arDepsList = require $this->installDir.'/dependencies.php';
+		}
+		return $arDepsList;
+	}
+	public function InstallDeps() { $this->bSuccessInstallDeps = true; return $this->bSuccessInstallDeps; }
+	public function UnInstallDeps() { $this->bSuccessUnInstallDeps = true; return $this->bSuccessUnInstallDeps; }
 
 
 	static public function getModuleCurDir(){
