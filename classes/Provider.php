@@ -154,6 +154,9 @@ abstract class Provider extends CMessagePoolDecorator {
 		if (array_key_exists($providerID, self::$_arProvidersList)) {
 			return self::$_arProvidersList[$providerID];
 		} else {
+			if( strlen(trim($providerID))<1 && array_key_exists('EMAIL', self::$_arProvidersList) ) {
+				return self::$_arProvidersList['EMAIL'];
+			}
 			/**
 			 * @var \CMain $APPLICATION
 			 */
@@ -254,9 +257,7 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 	final static public function getCurrent() {
 		$curProvID = \COption::GetOptionString('obx.sms', 'PROVIDER_SELECTED');
-		if (strlen($curProvID) > 0) {
-			return self::factory($curProvID);
-		}
+		return self::factory($curProvID);
 	}
 
 	/**

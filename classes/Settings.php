@@ -22,7 +22,13 @@ class ModuleSettingsMainTab extends SettingsTab {
 
 	public function showTabContent() {
 		$arProvidersList = Provider::getProvidersList();
-		$curProviderString = Provider::getCurrent()->PROVIDER_ID();
+		$CurrentProvider = Provider::getCurrent();
+		if($CurrentProvider != null) {
+			$curProviderString = Provider::getCurrent()->PROVIDER_ID();
+		}
+		else {
+			$curProviderString = '';
+		}
 		if (!strlen($curProviderString) > 0) {
 			$curProviderString = 'EMAIL';
 		}
