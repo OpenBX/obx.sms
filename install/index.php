@@ -1,4 +1,4 @@
-<?php
+<?
 /*******************************************
  ** @product OBX:Market Bitrix Module     **
  ** @authors                              **
