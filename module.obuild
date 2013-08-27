@@ -24,3 +24,6 @@
 		exclude_path: %INSTALL_FOLDER%/modules/obx.core/test/*.php
 		exclude_path: %INSTALL_FOLDER%/modules/obx.core/test/*/*.php
 }
+
+[END]
+@include: %MODULES_BUILD%/%MODULE_ID%/release.obuild;
