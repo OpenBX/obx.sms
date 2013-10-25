@@ -12,7 +12,7 @@
 
 namespace OBX\Sms\Provider;
 
-use OBX\Core\Settings\Tab;
+use OBX\Core\Settings\Settings;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -25,7 +25,7 @@ class IqSms extends Provider {
 	public function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_IQSMS_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_IQSMS_DESCRIPTION');
-		$this->_Settings = new Tab(
+		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID(),
 			array(
@@ -174,4 +174,3 @@ class IqSms extends Provider {
 		return $this->_sendRequest('senders');
 	}
 }
-//IqSms::registerProvider();

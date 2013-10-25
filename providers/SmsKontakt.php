@@ -13,7 +13,7 @@
 namespace OBX\Sms\Provider;
 
 namespace OBX\Sms\Provider;
-use OBX\Core\Settings\Tab;
+use OBX\Core\Settings\Settings;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -34,7 +34,7 @@ class SmsKontakt extends Provider {
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
-		$this->_Settings = new Tab(
+		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID,
 			array(
@@ -144,5 +144,3 @@ class SmsKontakt extends Provider {
 		return $server_answer;
 	}
 }
-
-SmsKontakt::registerProvider();

@@ -1,8 +1,18 @@
-<?
-$MESS ['MAIN_SAVE'] = "Сохранить";
-$MESS ['MAIN_OPT_APPLY'] = "Применить";
-$MESS ['MAIN_OPT_CANCEL'] = "Отменить";
-$MESS ['MAIN_RESTORE_DEFAULTS'] = "Восстановить";
-$MESS ['MAIN_HINT_RESTORE_DEFAULTS'] = "Восстановить значения по умолчанию";
-$MESS ['MAIN_HINT_RESTORE_DEFAULTS_WARNING'] = "Внимание это действие сотреть все текущие настройки. \n Продолжить?";
-?>
+<?php
+$MESS['OBX_SMS_SETT_MAIN_TAB_NAME'] = 'Основные';
+$MESS['OBX_SMS_SETT_MAIN_TAB_TITLE'] = 'Основные настройки СМС';
+$MESS['OBX_SMS_SETT_MAIN_TAB_DESCRIPTION'] = 'Основные настройки СМС';
+$MESS['OBX_SMS_SETT_SELECTED_PROVIDER'] = 'Активный провайдер';
+$MESS['OBX_SMS_SETT_DEF_MSG_SYM_LIMIT'] = 'Общее ограничение символов на одно сообщение';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';
+//$MESS[''] = '';

@@ -1,5 +1,5 @@
 <?php
-$MESS['OBX_SMS_PROVIDER_KOMPEITOSMS_NAME'] = 'KompeitoSms - Смс-шлюз';
+$MESS['OBX_SMS_PROVIDER_KOMPEITOSMS_NAME'] = 'KompeitoSms';
 $MESS['OBX_SMS_PROVIDER_KOMPEITOSMS_DECRIPTION'] = 'Необходима регистрация на <a href="http://kompeito.ru/">сайте поставщика</a>';
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN'] = 'Имя пользователя';
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN_PH'] = 'Введите имя пользователя';

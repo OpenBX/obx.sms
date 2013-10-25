@@ -7,7 +7,12 @@ if(!defined("BX_ROOT")) {
 	if( !$USER->IsAdmin() ) return false;
 }
 
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/ByteHand.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/EMailProvider.php");
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/IqSms.php");
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/KompeitoSms.php");
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/LetsAds.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsKontakt.php");
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/TurboSmsUA.php");
 if($bConnectEpilog) require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_after.php");
 ?>

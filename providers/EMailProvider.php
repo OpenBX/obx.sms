@@ -18,6 +18,7 @@ IncludeModuleLangFile(__FILE__);
 class EMailProvider extends Provider {
 
 	protected $PROVIDER_ID = 'EMAIL';
+	protected $SORT = 10000;
 
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_EMAIL_NAME');
@@ -65,5 +66,3 @@ class EMailProvider extends Provider {
 		return 1;
 	}
 }
-
-EMailProvider::registerProvider();

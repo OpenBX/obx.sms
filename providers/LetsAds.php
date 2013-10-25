@@ -12,7 +12,9 @@
 
 namespace OBX\Sms\Provider;
 
-use OBX\Core\Settings\Tab;
+use OBX\Core\Settings\Settings;
+
+IncludeModuleLangFile(__FILE__);
 
 class LetsAds extends Provider {
 	protected $PROVIDER_ID = 'LETSADS';
@@ -22,7 +24,7 @@ class LetsAds extends Provider {
 	public function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_LETSADS_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_LETSADS_DESCRIPTION');
-		$this->_Settings = new Tab(
+		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID(),
 			array(
@@ -256,4 +258,3 @@ class LetsAds extends Provider {
 		return $result;
 	}
 }
-//LetsAds::registerProvider();

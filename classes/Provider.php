@@ -16,14 +16,13 @@ use OBX\Core\CMessagePoolDecorator;
 
 abstract class Provider extends CMessagePoolDecorator {
 	static protected $_arProvidersList;
-	/**
-	 * @var self (Singleton)
-	 */
+	/** @var array Providers cache */
 	static protected $_arProviderListClassIndex;
 
-	protected $PROVIDER_ID = "";
-	protected $PROVIDER_NAME = "";
-	protected $PROVIDER_DESCRIPTION = "";
+	protected $PROVIDER_ID = '';
+	protected $PROVIDER_NAME = '';
+	protected $PROVIDER_DESCRIPTION = '';
+	protected $SORT = 100;
 
 	/**
 	 * Параметры
@@ -80,6 +79,10 @@ abstract class Provider extends CMessagePoolDecorator {
 		return $this->PROVIDER_ID;
 	}
 
+	final public function SORT() {
+		return intval($this->SORT);
+	}
+
 	/**
 	 *
 	 */
@@ -95,8 +98,16 @@ abstract class Provider extends CMessagePoolDecorator {
 				$Provider->syncSettings();
 				self::$_arProvidersList[$Provider->PROVIDER_ID()] = $Provider;
 				self::$_arProviderListClassIndex[$className] = $Provider;
+				uasort(self::$_arProvidersList, array(self, '__sortProvidersList'));
 			}
 		}
+	}
+
+	protected static function __sortProvidersList(self $A, self $B) {
+		if ($A->SORT() == $B->SORT()) {
+			return 0;
+		}
+		return ($A->SORT() < $B->SORT()) ? -1 : 1;
 	}
 
 	/**
@@ -122,6 +133,7 @@ abstract class Provider extends CMessagePoolDecorator {
 		}
 
 		$dir = opendir($_providerDir);
+		$arFilesList = array();
 		while ($elementOfDir = readdir($dir)) {
 			if (
 					$elementOfDir != ".."
@@ -157,9 +169,7 @@ abstract class Provider extends CMessagePoolDecorator {
 			if( strlen(trim($providerID))<1 && array_key_exists('EMAIL', self::$_arProvidersList) ) {
 				return self::$_arProvidersList['EMAIL'];
 			}
-			/**
-			 * @var \CMain $APPLICATION
-			 */
+			/** @var \CMain $APPLICATION */
 			global $APPLICATION;
 			$APPLICATION->ThrowException(GetMessage("OBX_SMS_PROVIDER_NOT_FOUND"));
 			return null;
