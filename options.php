@@ -47,6 +47,8 @@ $ModuleSettings->addTab(new SettingsTab(
 		)
 	)
 ));
+
+
 foreach($arProvidersList as $Provider) {
 	/** @var Provider $Provider */
 	$ModuleSettings->addTab(new SettingsTab(
@@ -61,6 +63,13 @@ foreach($arProvidersList as $Provider) {
 	));
 }
 
+if($ModuleSettings->checkSaveRequest()) {
+	$ModuleSettings->save();
+}
+if($ModuleSettings->checkRestoreRequest()) {
+	$ModuleSettings->restoreDefaults();
+}
+
 ?>
 <style type="text/css" rel="stylesheet">
 	#obx_sms_opt_page td.adm-detail-content-cell-l {
@@ -70,15 +79,9 @@ foreach($arProvidersList as $Provider) {
 <div id="obx_sms_opt_page">
 <?
 
+$ModuleSettings->setRestoreConfirmMessage(GetMessage('OBX_SMS_SETT_RESTORE_DEF_CONFIRM'));
 $ModuleSettings->show();
 
 ?>
 </div>
 <?
-
-if($ModuleSettings->checkSaveRequest()) {
-	$ModuleSettings->save();
-}
-if($ModuleSettings->checkRestoreRequest()) {
-	$ModuleSettings->restoreDefaults();
-}

@@ -30,7 +30,7 @@ class LetsAds extends Provider {
 			array(
 				'LOGIN' => array(
 					'NAME' => GetMessage('OBX_SMS_PROV_LETSADS_SETT_LOGIN'),
-					'TYPE' => 'TEXT',
+					'TYPE' => 'STRING',
 					'VALUE' => '',
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN_PH')
@@ -46,7 +46,7 @@ class LetsAds extends Provider {
 				),
 				'FROM' => array(
 					'NAME' => GetMessage('OBX_SMS_PROV_LETSADS_SETT_FROM'),
-					'TYPE' => 'TEXT',
+					'TYPE' => 'STRING',
 					'VALUE' => '',
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_LETSADS_SETT_FROM_PH')
@@ -87,7 +87,8 @@ class LetsAds extends Provider {
 	}
 
 	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
-		return $this->sendEx($this->_Settings->getOption('FROM'), $countryCode.$phoneNumber, $text);
+		$result = $this->sendEx($this->_Settings->getOption('FROM'), $countryCode.$phoneNumber, $text);
+		return (!!$result);
 	}
 
 	public function sendSingle($to, $message) {
@@ -123,7 +124,7 @@ class LetsAds extends Provider {
 
 	public function getStatus($ids) {
 		$xml = new \SimpleXMLElement('<request></request>');
-		$this->addAuth($xml);
+		$this->_addXmlAuth($xml);
 		if (is_array($ids)) {
 			foreach ($ids as $i => $id) {
 				$xml->sms[$i]['id'] = $id;
@@ -133,7 +134,7 @@ class LetsAds extends Provider {
 		}
 		$response = $this->doSend($xml);
 		$result = array();
-		if ($this->starts_with('<?xml', $response)) {
+		if ($this->_startsWith('<?xml', $response)) {
 			$xmlRes = new \SimpleXMLElement($response);
 			foreach ($xmlRes->sms as $tmp) {
 				$tmpResult = array();
@@ -160,15 +161,22 @@ class LetsAds extends Provider {
 
 	public function getBalance() {
 		$result = $this->requestBalance();
+		if(false === $result) {
+			return false;
+		}
 		return $result['money'];
 	}
 
 	public function requestBalance() {
 		$xml = new \SimpleXMLElement('<request></request>');
-		$this->addAuth($xml);
+		$this->_addXmlAuth($xml);
+		$xml->addChild('balance');
 		$response = $this->doSend($xml);
+		if(false === $response) {
+			return false;
+		}
 		$result = array();
-		if ($this->starts_with('<?xml', $response)) {
+		if ($this->_startsWith('<?xml', $response)) {
 			$xmlResult = new \SimpleXMLElement($response);
 			$result['money'] = (double)$xmlResult->money;
 			$result['credits'] = (double)$xmlResult->credits;
@@ -183,7 +191,7 @@ class LetsAds extends Provider {
 
 	public function sendEx($from, $to, $message) {
 		$xmlResult = new \SimpleXMLElement('<request></request>');
-		$this->addAuth($xmlResult);
+		$this->_addXmlAuth($xmlResult);
 
 		$xmlResult->message->from = $from;
 
@@ -200,17 +208,10 @@ class LetsAds extends Provider {
 
 		$response = $this->doSend($xmlResult);
 		$result = array();
-		if ($this->starts_with('<?xml', $response)) {
+		if( $response!== false && $this->_startsWith('<?xml', $response) ) {
 			$xml = new \SimpleXMLElement($response);
 			$result['count'] = (int)$xml->count;
 			$result['data'] = array();
-			// +++
-			if ($xml->name == 'Error') {
-				$error = (string)$xml->description;
-				$result['error'] = $error;
-				unset ($error);
-			}
-			// ^^^
 			foreach ($xml->to as $tmp) {
 				$a = $tmp->attributes();
 				$c = $tmp->children();
@@ -224,21 +225,23 @@ class LetsAds extends Provider {
 				array_push($result['data'], $rep);
 			}
 		} else {
-			$result['error'] = (string)$response;
+			return false;
 		}
-		return $result;
+		return true;
 	}
 
-	private function starts_with($str, $src) {
+	protected function _startsWith($str, $src) {
 		return substr($src, 0, strlen($str)) == $str;
 	}
 
-	private function addAuth($xml) {
-		$xml->auth->login = $this->arSettings['LOGIN']['VALUE'];
-		$xml->auth->password = $this->arSettings['PASS']['VALUE'];
+	protected function _addXmlAuth($xml) {
+//		$xml->auth->login = $this->arSettings['LOGIN']['VALUE'];
+//		$xml->auth->password = $this->arSettings['PASS']['VALUE'];
+		$xml->auth->login = $this->_Settings->getOption('LOGIN');
+		$xml->auth->password = $this->_Settings->getOption('PASS');
 	}
 
-	private function doSend($xml) {
+	protected function doSend($xml) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, self::ADDR);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -248,13 +251,82 @@ class LetsAds extends Provider {
 
 		$result = curl_exec($ch);
 
+
 		$info = curl_getinfo($ch);
 		curl_close($ch);
 
-		if ($info['http_code'] != 200) {
-			return 'HTTP: ' . $info['http_code'];
+		if( $info['http_code'] != 200 ) {
+			$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_ERROR_REQUEST', array('#ERROR#' => $info['http_code'])));
+			return false;
+		}
+		if( !$this->checkError($result) ) {
+			return false;
 		}
 
 		return $result;
+	}
+
+	const E_API_NO_DATA = 1;
+	const E_API_WRONG_DATA_FORMAT = 2;
+	const E_API_REQUEST_FORMAT = 3;
+	const E_API_AUTH_DATA = 4;
+	const E_API_API_DISABLED = 5;
+	const E_API_USER_NOT_MODERATED = 6;
+	const E_API_INCORRECT_FROM = 7;
+	const E_API_INVALID_FROM = 8;
+	const E_API_MESSAGE_TOO_LONG = 9;
+	const E_API_NO_MESSAGE = 10;
+	const E_API_MAX_MESSAGES_COUNT = 11;
+	const E_API_NOT_ENOUGH_MONEY = 12;
+	const E_API_UNKNOWN_ERROR = 13;
+
+	protected function checkError(&$result) {
+		$xmlResult = new \SimpleXMLElement($result);
+		if($xmlResult->name == 'Error') {
+			switch($xmlResult->description) {
+				case 'NO_DATA':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_NO_DATA'), self::E_API_NO_DATA);
+					break;
+				case 'WRONG_DATA_FORMAT':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_WRONG_DATA_FORMAT'), self::E_API_WRONG_DATA_FORMAT);
+					break;
+				case 'REQUEST_FORMAT':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_REQUEST_FORMAT'), self::E_API_REQUEST_FORMAT);
+					break;
+				case 'AUTH_DATA':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_AUTH_DATA'), self::E_API_AUTH_DATA);
+					break;
+				case 'API_DISABLED':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_API_DISABLED'), self::E_API_API_DISABLED);
+					break;
+				case 'USER_NOT_MODERATED':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_USER_NOT_MODERATED'), self::E_API_USER_NOT_MODERATED);
+					break;
+				case 'INCORRECT_FROM':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_INCORRECT_FROM'), self::E_API_INCORRECT_FROM);
+					break;
+				case 'INVALID_FROM':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_INVALID_FROM'), self::E_API_INVALID_FROM);
+					break;
+				case 'MESSAGE_TOO_LONG':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_MESSAGE_TOO_LONG'), self::E_API_MESSAGE_TOO_LONG);
+					break;
+				case 'NO_MESSAGE':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_NO_MESSAGE'), self::E_API_NO_MESSAGE);
+					break;
+				case 'MAX_MESSAGES_COUNT':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_MAX_MESSAGES_COUNT'), self::E_API_MAX_MESSAGES_COUNT);
+					break;
+				case 'NOT_ENOUGH_MONEY':
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_NOT_ENOUGH_MONEY'), self::E_API_NOT_ENOUGH_MONEY);
+					break;
+				case 'UNKNOWN_ERROR':
+				default:
+					$this->addError(GetMessage('OBX_SMS_PROV_LETSADS_API_ERROR_UNKNOWN_ERROR'), self::E_API_UNKNOWN_ERROR);
+					break;
+			}
+			return false;
+		}
+		return true;
 	}
 }

@@ -13,8 +13,9 @@
 namespace OBX\Sms\Provider;
 
 use OBX\Core\CMessagePoolDecorator;
+use OBX\Core\Settings\ISettings;
 
-abstract class Provider extends CMessagePoolDecorator {
+abstract class Provider extends CMessagePoolDecorator implements ISettings {
 	static protected $_arProvidersList;
 	/** @var array Providers cache */
 	static protected $_arProviderListClassIndex;
@@ -40,6 +41,7 @@ abstract class Provider extends CMessagePoolDecorator {
 
 	final protected function __clone() {}
 
+	// +++ ISettings implementation
 	public function getSettings($bReturnArray = false) {
 		if($bReturnArray) {
 			return $this->_Settings->getSettings();
@@ -50,6 +52,10 @@ abstract class Provider extends CMessagePoolDecorator {
 		$this->_Settings->syncSettings();
 	}
 
+	public function syncOption($optionCode) {
+		$this->_Settings->syncOption($optionCode);
+	}
+
 	public function saveSettings($arSettings) {
 		$this->_Settings->saveSettings($arSettings);
 	}
@@ -58,11 +64,29 @@ abstract class Provider extends CMessagePoolDecorator {
 		$this->_Settings->saveSettingsRequestData();
 	}
 
+	public function getOption($optionCode, $bResturnOptionArray = false) {
+		return $this->_Settings->getOption($optionCode, $bResturnOptionArray);
+	}
+	public function getOptionInput($optionCode, $arAttributes = array()) {
+		return $this->_Settings->getOptionInput($optionCode, $arAttributes);
+	}
+
+	public function getSettingsID() {
+		return $this->_Settings->getSettingsID();
+	}
+	public function getSettingModuleID() {
+		return $this->_Settings->getSettingModuleID();
+	}
+	public function restoreDefaults() {
+		return $this->_Settings->restoreDefaults();
+	}
+	// ^^^ ISettings implementation
+
 	/**
 	 * @return string
 	 */
-	final public function PROVIDER_DESCRIPTION() {
-		return $this->PROVIDER_DESCRIPTION;
+	final public function PROVIDER_ID() {
+		return $this->PROVIDER_ID;
 	}
 
 	/**
@@ -75,8 +99,8 @@ abstract class Provider extends CMessagePoolDecorator {
 	/**
 	 * @return string
 	 */
-	final public function PROVIDER_ID() {
-		return $this->PROVIDER_ID;
+	final public function PROVIDER_DESCRIPTION() {
+		return $this->PROVIDER_DESCRIPTION;
 	}
 
 	final public function SORT() {
@@ -175,6 +199,28 @@ abstract class Provider extends CMessagePoolDecorator {
 			return null;
 		}
 	}
+	/**
+	 * Получить объект провайдера по умолчанию
+	 * @return Provider
+	 */
+	final static public function getCurrent() {
+		$curProvID = \COption::GetOptionString('obx.sms', 'PROVIDER_SELECTED');
+		return self::factory($curProvID);
+	}
+
+	/**
+	 * Задать провайдера по умолчанию
+	 * Возвращает true в случае успешной установки или false в случае если $providerID не найден в списке провайдеров
+	 * @param string $providerID
+	 * @return bool
+	 */
+	final static public function setCurrent($providerID) {
+		if (array_key_exists($providerID, self::$_arProvidersList)) {
+			\COption::SetOptionString('obx.sms', 'PROVIDER_SELECTED', $providerID);
+			return true;
+		}
+		return false;
+	}
 
 	public function checkPhoneNumber($rawPhoneNumber, &$countryCode = null) {
 		$rawPhoneNumber = str_replace(array(' ', '	', '-', '(', ')'), '', $rawPhoneNumber);
@@ -197,7 +243,7 @@ abstract class Provider extends CMessagePoolDecorator {
 	 * @param $telNo
 	 * @param $text
 	 * @param array $arFields
-	 * @return bool
+	 * @return bool|int
 	 */
 	public function send($telNo, $text, $arFields = array()) {
 		$phoneNumber = $this->checkPhoneNumber($telNo, $countryCode);
@@ -223,7 +269,7 @@ abstract class Provider extends CMessagePoolDecorator {
 	 * @param $text
 	 * @param $arFields
 	 * @param string $countryCode
-	 * @return mixed
+	 * @return int|bool
 	 */
 	abstract protected function _send(&$telNo, &$text, &$arFields, &$countryCode);
 
@@ -260,27 +306,4 @@ abstract class Provider extends CMessagePoolDecorator {
 	 */
 	abstract public function getMessageStatus($messageID);
 
-
-	/**
-	 * Получить объект провайдера по умолчанию
-	 * @return Provider
-	 */
-	final static public function getCurrent() {
-		$curProvID = \COption::GetOptionString('obx.sms', 'PROVIDER_SELECTED');
-		return self::factory($curProvID);
-	}
-
-	/**
-	 * Задать провайдера по умолчанию
-	 * Возвращает true в случае успешной установки или false в случае если $providerID не найден в списке провайдеров
-	 * @param string $providerID
-	 * @return bool
-	 */
-	final static public function setCurrent($providerID) {
-		if (array_key_exists($providerID, self::$_arProvidersList)) {
-			\COption::SetOptionString('obx.sms', 'PROVIDER_SELECTED', $providerID);
-			return true;
-		}
-		return false;
-	}
 }
