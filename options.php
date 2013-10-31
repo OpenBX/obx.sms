@@ -29,7 +29,7 @@ $ModuleSettings->addTab(new SettingsTab(
 	'obx.sms',
 	'COMMON_SETTINGS',
 	array(
-		'TAB' => 'Основные',
+		'TAB' => GetMessage('OBX_SMS_SETT_MAIN_TAB_NAME'),
 		'TITLE' => GetMessage('OBX_SMS_SETT_MAIN_TITLE'),
 		'DESCRIPTION' => GetMessage('OBX_SMS_SETT_MAIN_TAB_DESCRIPTION')
 	),
