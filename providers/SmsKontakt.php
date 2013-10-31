@@ -48,6 +48,8 @@ class SmsKontakt extends Provider {
 				),
 				'API_KEY' => array(
 					'NAME' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_API_KEY'),
+					'DESCRIPTION' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_API_KEY_DESCRIPTION'),
+					//'HINT' => GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_SETT_API_KEY_HINT'),
 					'TYPE' => 'STRING',
 					'VALUE' => '',
 				),
