@@ -64,29 +64,22 @@ class IqSms extends Provider {
 	const ERROR_EMPTY_API_PASSWORD = 'Empty api password not allowed';
 	const ERROR_EMPTY_RESPONSE = 'errorEmptyResponse';
 
-	protected $_apiLogin = '';
-
+	protected $_apiLogin = null;
 	protected $_apiPassword = null;
 
+
 	protected $_host = 'json.gate.iqsms.ru';
-
 	protected $_packetSize = 200;
-
 	protected $_results = array();
 
-//	public function __construct($apiLogin, $apiPassword) {
-//		$this->_setApiLogin($apiLogin);
-//		$this->_setApiPassword($apiPassword);
-//	}
-
-	private function _setApiLogin($apiLogin) {
+	protected function _setApiLogin($apiLogin) {
 		if (empty($apiLogin)) {
-			throw new \Exception(self::ERROR_EMPTY_API_LOGIN);
+			throw new \ErrorException(self::ERROR_EMPTY_API_LOGIN);
 		}
 		$this->_apiLogin = $apiLogin;
 	}
 
-	private function _setApiPassword($apiPassword) {
+	protected function _setApiPassword($apiPassword) {
 		if (empty($apiPassword)) {
 			throw new \Exception(self::ERROR_EMPTY_API_PASSWORD);
 		}
@@ -100,8 +93,14 @@ class IqSms extends Provider {
 	public function getHost() {
 		return $this->_host;
 	}
+	protected function _getApiLogin() {
 
-	private function _sendRequest($uri, $params = null) {
+	}
+	protected function _getApiPassword() {
+
+	}
+
+	protected function _sendRequest($uri, $params = null) {
 		$url = $this->_getUrl($uri);
 		$data = $this->_formPacket($params);
 
@@ -117,20 +116,20 @@ class IqSms extends Provider {
 		$body = curl_exec($client);
 		curl_close($client);
 		if (empty($body)) {
-			throw new \Exception(self::ERROR_EMPTY_RESPONSE);
+			throw new \ErrorException(self::ERROR_EMPTY_RESPONSE);
 		}
 		$decodedBody = json_decode($body, true);
 		if (is_null($decodedBody)) {
-			throw new \Exception($body);
+			throw new \ErrorException($body);
 		}
 		return $decodedBody;
 	}
 
-	private function _getUrl($uri) {
+	protected function _getUrl($uri) {
 		return 'http://' . $this->getHost() . '/' . $uri . '/';
 	}
 
-	private function _formPacket($params = null) {
+	protected function _formPacket($params = null) {
 		$params['login'] = $this->_apiLogin;
 		$params['password'] = $this->_apiPassword;
 		foreach ($params as $key => $value) {

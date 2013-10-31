@@ -10,6 +10,7 @@
 		<testsuite name="OBX_Sms_API_Tests">
 			<!-- <directory></directory> -->
 			<file>ProviderSmsKontakt.php</file>
+			<file>ProviderSmsIq.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>
