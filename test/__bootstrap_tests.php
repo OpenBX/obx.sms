@@ -38,7 +38,7 @@ namespace OBX\Sms\Test {
 	use OBX\Core\Test\TestCase as CoreTestCase;
 
 	class SmsTestCase extends CoreTestCase {
-		public function getCurDir() {
+		static public function getCurDir() {
 			return dirname(__FILE__);
 		}
 	}
