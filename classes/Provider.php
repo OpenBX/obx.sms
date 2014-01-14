@@ -12,10 +12,10 @@
 
 namespace OBX\Sms\Provider;
 
-use OBX\Core\CMessagePoolDecorator;
+use OBX\Core\MessagePoolDecorator;
 use OBX\Core\Settings\ISettings;
 
-abstract class Provider extends CMessagePoolDecorator implements ISettings {
+abstract class Provider extends MessagePoolDecorator implements ISettings {
 	static protected $_arProvidersList;
 	/** @var array Providers cache */
 	static protected $_arProviderListClassIndex;
