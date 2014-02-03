@@ -204,7 +204,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	 * @return Provider
 	 */
 	final static public function getCurrent() {
-		$curProvID = \COption::GetOptionString('obx.sms', 'PROVIDER_SELECTED');
+		$curProvID = \COption::GetOptionString('obx.sms', 'COMMON_SETTINGS_PROVIDER_SELECTED');
 		return self::factory($curProvID);
 	}
 

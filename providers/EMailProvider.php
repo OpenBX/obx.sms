@@ -31,10 +31,21 @@ class EMailProvider extends Provider {
 					'NAME' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_EMAIL'),
 					'TYPE' => 'STRING',
 					'VALUE' => '',
+					'SORT' => 100,
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_EMAIL_PH')
 					),
 				),
+				'FROM' => array(
+					'NAME' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_FROM'),
+					'TYPE' => 'STRING',
+					'VALUE' => '',
+					'SORT' => 110,
+					'INPUT_ATTR' => array(
+						'placeholder' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_FROM_PH'),
+						'style' => 'width: 270px;'
+					)
+				)
 			)
 		);
 	}
@@ -54,11 +65,22 @@ class EMailProvider extends Provider {
 				), 1);
 			return false;
 		}
-		mail(
+		$from = trim($this->getSettings()->getOption('FROM'));
+		$charset = LANG_CHARSET;
+		$additional_headers = "Content-type: text/plain; charset=$charset\n\r";
+		if(!empty($from)) {
+			$additional_headers .= "From: $from\n\r";
+		}
+		$bSuccess = mail(
 			$email,
 			GetMessage('OBX_SMS_PROV_EMAIL_SEND_SUBJ', array('#NUMBER#' => $phoneNumber)),
-			GetMessage('OBX_SMS_PROB_EMAIL_SEND_TEXT')."\n".$text
+			GetMessage('OBX_SMS_PROB_EMAIL_SEND_TEXT')."\n".$text,
+			$additional_headers
 		);
+		if(!$bSuccess) {
+			$this->addError(GetMessage('OBX_SMS_PROV_EMAIL_ERROR_2'), 2);
+			return false;
+		}
 		return true;
 	}
 
