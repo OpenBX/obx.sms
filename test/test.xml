@@ -9,8 +9,12 @@
 	<testsuites>
 		<testsuite name="OBX_Sms_API_Tests">
 			<!-- <directory></directory> -->
-			<file>ProviderSmsKontakt.php</file>
+			<file>ProviderByteHand.php</file>
 			<file>ProviderSmsIq.php</file>
+			<file>ProviderLetsAds.php</file>
+			<file>ProviderLittleSms.php</file>
+			<file>ProviderSmsKontakt.php</file>
+			<file>ProviderTurboSmsUA.php</file>
 		</testsuite>
 	</testsuites>
 </phpunit>

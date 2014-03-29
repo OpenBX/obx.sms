@@ -23,6 +23,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	protected $PROVIDER_ID = '';
 	protected $PROVIDER_NAME = '';
 	protected $PROVIDER_DESCRIPTION = '';
+	protected $PROVIDER_HOMEPAGE = '';
 	protected $SORT = 100;
 
 	/**
@@ -82,27 +83,24 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	}
 	// ^^^ ISettings implementation
 
-	/**
-	 * @return string
-	 */
+	/** @return string */
 	final public function PROVIDER_ID() {
 		return $this->PROVIDER_ID;
 	}
 
-	/**
-	 * @return string
-	 */
+	/** @return string */
 	final public function PROVIDER_NAME() {
 		return $this->PROVIDER_NAME;
 	}
-
-	/**
-	 * @return string
-	 */
+	/** @return string */
 	final public function PROVIDER_DESCRIPTION() {
 		return $this->PROVIDER_DESCRIPTION;
 	}
-
+	/** @return string */
+	final public function PROVIDER_HOMEPAGE() {
+		return $this->PROVIDER_HOMEPAGE;
+	}
+	/** @return int */
 	final public function SORT() {
 		return intval($this->SORT);
 	}
@@ -252,15 +250,15 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 			return false;
 		}
 		if( empty($countryCode) ) $countryCode = static::DEFAULT_COUNTRY_CODE;
-		$bSuccess = $this->_send($phoneNumber, $text, $arFields, $countryCode);
+		$messageID = $this->_send($phoneNumber, $text, $arFields, $countryCode);
 		$this->_lastSentMessage = array(
 			'COUNTRY' => $countryCode,
 			'PHONE' => $phoneNumber,
 			'TEXT' => $text,
-			'SUCCESS' => $bSuccess?'Y':'N',
+			'SUCCESS' => $messageID?'Y':'N',
 		);
-		if(!$bSuccess) $this->_lastSentMessage['ERROR'] = $this->getLastError();
-		return $bSuccess;
+		if(false === $messageID) $this->_lastSentMessage['ERROR'] = $this->getLastError();
+		return $messageID;
 	}
 
 	/**
@@ -285,8 +283,11 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	 * TODO:
 	 * список номеров - один текст сообщения
 	 */
-	public function sendBatch() {
+	public function sendBatch($arBatch) {
+
 	}
+
+
 
 	/*
 	 * Персональная отправка сообщений

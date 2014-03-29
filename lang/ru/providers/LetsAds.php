@@ -1,6 +1,6 @@
 <?php
 $MESS['OBX_SMS_PROVIDER_LETSADS_NAME'] = 'LetsAds';
-$MESS['OBX_SMS_PROVIDER_LETSADS_DESCRIPTION'] = '<a href="http://letsads.com/">Сайт поставщика</a>';
+$MESS['OBX_SMS_PROVIDER_LETSADS_DESCRIPTION'] = 'LetsAds - Украинский сервис';
 $MESS['OBX_SMS_PROV_LETSADS_SETT_LOGIN'] = 'Логин (номер телефона)';
 $MESS['OBX_SMS_PROV_LETSADS_SETT_LOGIN_PH'] = 'Введите имя пользователя';
 $MESS['OBX_SMS_PROV_LETSADS_SETT_PASS'] = 'Пароль';

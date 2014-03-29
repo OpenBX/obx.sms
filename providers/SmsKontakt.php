@@ -34,6 +34,7 @@ class SmsKontakt extends Provider {
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
+		$this->PROVIDER_HOMEPAGE = 'http://sms-kontakt.ru/';
 		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID,
@@ -88,14 +89,13 @@ class SmsKontakt extends Provider {
 			$this->addError(GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_ERROR_1'));
 			return false;
 		}
-		$result = $this->MessageSend($phoneNumber, $text);
+		$result = $this->MessageSend($countryCode.$phoneNumber, $text);
 		$arResult = json_decode($result, true);
 		if ($arResult[0]['result'] == 'success') {
 			return true;
-		} else {
-			$this->addError($arResult[0]['describe']);
-			return false;
 		}
+		$this->addError($arResult[0]['describe']);
+		return false;
 	}
 
 	function SendPostRequest($url, $headers, $post_body) {

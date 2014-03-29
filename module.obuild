@@ -10,6 +10,7 @@
 #%INSTALL_FOLDER%/php_interface/obx.sms :: *.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: EMailProvider.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: SmsKontakt.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: TurboSmsUA.php :: %BX_ROOT%/php_interface/obx.sms/
 
 [RAW_LANG_CHECK]
 {

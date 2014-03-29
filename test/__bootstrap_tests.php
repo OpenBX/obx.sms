@@ -36,9 +36,23 @@ namespace {
 
 namespace OBX\Sms\Test {
 	use OBX\Core\Test\TestCase as CoreTestCase;
+	use OBX\Sms\Provider\Provider;
 
 	class SmsTestCase extends CoreTestCase {
 		const _DIR_ = __DIR__;
+
+		/**
+		 * @var Provider|null
+		 * @protected
+		 */
+		protected $provider = null;
+
+		public function send() {
+			$success = $this->provider->send('+79080158883', 'тест: '.$this->provider->PROVIDER_ID());
+			if(!$success) {
+				$this->fail($this->provider->getLastError());
+			}
+		}
 	}
 	SmsTestCase::includeLang(__FILE__);
 }

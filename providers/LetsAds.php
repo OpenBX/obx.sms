@@ -17,13 +17,13 @@ use OBX\Core\Settings\Settings;
 IncludeModuleLangFile(__FILE__);
 
 class LetsAds extends Provider {
-	protected $PROVIDER_ID = 'LETSADS';
-	protected $PROVIDER_NAME = null;
-	protected $PROVIDER_DESCRIPTION = null;
 
 	public function __construct() {
+		$this->PROVIDER_ID = 'LETSADS';
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_LETSADS_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_LETSADS_DESCRIPTION');
+		$this->PROVIDER_HOMEPAGE = 'http://letsads.com/';
+
 		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID(),

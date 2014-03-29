@@ -18,17 +18,11 @@ IncludeModuleLangFile(__FILE__);
 
 class KompeitoSms extends Provider {
 
-	/*
-	 * Объявление провайдера
-	 */
-	protected $PROVIDER_ID = 'KOMPEITOSMS';
-	protected $PROVIDER_NAME = null;
-	protected $PROVIDER_DESCRIPTION = null;
-
-
 	public function __construct() {
+		$this->PROVIDER_ID = 'KOMPEITOSMS';
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_KOMPEITOSMS_NAME');
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_KOMPEITOSMS_DECRIPTION');
+		$this->PROVIDER_HOMEPAGE = 'http://kompeito.ru/';
 		$this->_Settings = new Settings(
 			'obx.sms',
 			'PROVIDER_'.$this->PROVIDER_ID(),
@@ -39,7 +33,8 @@ class KompeitoSms extends Provider {
 					'VALUE' => '',
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_LOGIN_PH')
-					)
+					),
+					'SORT' => 110,
 				),
 				'PASS' => array(
 					'NAME' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_PASS'),
@@ -47,15 +42,18 @@ class KompeitoSms extends Provider {
 					'VALUE' => '',
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_PASS_PH')
-					)
+					),
+					'SORT' => 120,
 				),
 				'FROM' => array(
 					'NAME' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM'),
+					'DESCRIPTION' => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM_DESCR'),
 					'TYPE' => 'STRING',
 					'VALUE' => '',
 					'INPUT_ATTR' => array(
 						'placeholder' => GetMessage('OBX_SMS_PROV_LETSADS_SETT_FROM_PH')
-					)
+					),
+					'SORT' => 130
 				)
 			)
 		);
@@ -77,22 +75,15 @@ class KompeitoSms extends Provider {
 	const DELIVERY_REJECTED = 5;
 	const DELIVERY_FAILED = 6;
 
-	const ADDR = 'https://cabinet.kompeito.ru:443/api/xml';
+	const SOAP_URL = 'https://cabinet.kompeito.ru/api/soap?wsdl';
 
-	/*
-		public function __construct($user, $pass, $from=null) {
-			$this->from = $from;
-			$this->user = $user;
-			$this->pass = $pass;
-		}
-	*/
 
 	public function getMessageStatus($messageID) {
-		return $this->getStatus($messageID);
+
 	}
 
 	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
-		return $this->sendEx($this->from, $countryCode.$phoneNumber, $text);
+
 	}
 
 	public function sendSingle($to, $message) {

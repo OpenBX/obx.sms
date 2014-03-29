@@ -25,12 +25,12 @@ foreach($arProvidersList as $Provider) {
 	$arProvidersSimpleList[$Provider->PROVIDER_ID()] = $Provider->PROVIDER_NAME();
 }
 $ModuleSettings = new SettingsAdminPage('OpenBXSmsModuleOptions');
-$ModuleSettings->addTab(new SettingsTab(
+$MainSettingsTab = new SettingsTab(
 	'obx.sms',
 	'COMMON_SETTINGS',
 	array(
 		'TAB' => GetMessage('OBX_SMS_SETT_MAIN_TAB_NAME'),
-		'TITLE' => GetMessage('OBX_SMS_SETT_MAIN_TITLE'),
+		'TITLE' => GetMessage('OBX_SMS_SETT_MAIN_TAB_TITLE'),
 		'DESCRIPTION' => GetMessage('OBX_SMS_SETT_MAIN_TAB_DESCRIPTION')
 	),
 	array(
@@ -40,27 +40,54 @@ $ModuleSettings->addTab(new SettingsTab(
 			'VALUES' => $arProvidersSimpleList,
 			'VALUE' => 'EMAIL'
 		),
-		'DEFAULT_MSG_SYM_LIMIT' => array(
-			'NAME' => GetMessage('OBX_SMS_SETT_DEF_MSG_SYM_LIMIT'),
-			'TYPE' => 'STRING',
-			'VALUE' => '70'
-		)
+//		'DEFAULT_MSG_SYM_LIMIT' => array(
+//			'NAME' => GetMessage('OBX_SMS_SETT_DEF_MSG_SYM_LIMIT'),
+//			'TYPE' => 'STRING',
+//			'VALUE' => '70'
+//		)
 	)
-));
+);
+$ModuleSettings->addTab($MainSettingsTab);
 
-
+final class OBX_SMS_SettingsTab extends SettingsTab {
+	private $providerHomePage = null;
+	private $providerDescription = null;
+	public function setProviderHomepage($homepage) {
+		$this->providerHomePage = $homepage;
+	}
+	public function setProviderDescription($description) {
+		$this->providerDescription = $description;
+	}
+	public function showTabContent() {
+		?>
+		<tr><td colspan="2"><i><?=$this->providerDescription?></i></td></tr>
+		<tr>
+			<td><?=GetMessage('OBX_SMS_OPTIONS_PROV_HOMEPAGE')?></td>
+			<td><a target="_blank" href="<?=$this->providerHomePage?>"><?=$this->providerHomePage?></a></td>
+		</tr>
+		<?
+		parent::showTabContent();
+	}
+}
 foreach($arProvidersList as $Provider) {
 	/** @var Provider $Provider */
-	$ModuleSettings->addTab(new SettingsTab(
+	$providerSelected = false;
+	if( $MainSettingsTab->getOption('PROVIDER_SELECTED') == $Provider->PROVIDER_ID() ) {
+		$providerSelected = true;
+	}
+	$TabSettings = new OBX_SMS_SettingsTab(
 		'obx.sms',
 		'PROV_'.$Provider->PROVIDER_ID(),
 		array(
-			'TAB' => $Provider->PROVIDER_NAME(),
+			'TAB' => (($providerSelected)?' = ':'').$Provider->PROVIDER_NAME().(($providerSelected)?' = ':''),
 			'TITLE' => $Provider->PROVIDER_NAME(),
 			'DESCRIPTION' => $Provider->PROVIDER_DESCRIPTION(),
 		),
 		$Provider->getSettings()
-	));
+	);
+	$TabSettings->setProviderHomepage($Provider->PROVIDER_HOMEPAGE());
+	$TabSettings->setProviderDescription($Provider->PROVIDER_DESCRIPTION());
+	$ModuleSettings->addTab($TabSettings);
 }
 
 if($ModuleSettings->checkSaveRequest()) {
