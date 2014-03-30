@@ -7,10 +7,20 @@
 ##########################################
 
 [RESOURCES]
-#%INSTALL_FOLDER%/php_interface/obx.sms :: *.php :: %BX_ROOT%/php_interface/obx.sms/
+#
+# %INSTALL_FOLDER%/php_interface/obx.sms :: *.php :: %BX_ROOT%/php_interface/obx.sms/
+# добавляем провадеров в итоговый архив по отедности, дабы не попали не стабильные
+#
+%INSTALL_FOLDER%/php_interface/obx.sms :: ByteHand.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: EMailProvider.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: IqSms.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: KompeitoSms.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: LetsAds.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: LittleSms.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: SmsKontakt.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: TurboSmsUA.php :: %BX_ROOT%/php_interface/obx.sms/
+
+%INSTALL_FOLDER%/tools/ :: obx.sms :: %BX_ROOT%/tools/
 
 [RAW_LANG_CHECK]
 {
@@ -21,11 +31,6 @@
 	[install]
 		path: %INSTALL_FOLDER%/
 		exclude_path: %INSTALL_FOLDER%/modules/*
-	[module.obx.core]
-		path: %INSTALL_FOLDER%/modules/obx.core
-		exclude_path: %INSTALL_FOLDER%/modules/obx.core/classes/Build.php
-		exclude_path: %INSTALL_FOLDER%/modules/obx.core/test/*.php
-		exclude_path: %INSTALL_FOLDER%/modules/obx.core/test/*/*.php
 }
 
 [END]

@@ -9,46 +9,40 @@
  *******************************************/
 
 namespace OBX\Sms\Provider;
-
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
 
 IncludeModuleLangFile(__FILE__);
 
-class IqSms extends Provider {
+class SmsBliss extends Provider {
 
-	const ERROR_EMPTY_API_LOGIN = 'Empty api login not allowed';
-	const ERROR_EMPTY_API_PASSWORD = 'Empty api password not allowed';
-	const ERROR_EMPTY_RESPONSE = 'errorEmptyResponse';
+	const SEND_URL = 'http://gate.smsbliss.ru/send/';
+	const BALANCE_URL = 'http://gate.smsbliss.ru/credits/';
 
-	const SEND_URL = 'http://gate.iqsms.ru/send/';
-	const BALANCE_URL = 'http://gate.iqsms.ru/credits/';
-
-
-	public function __construct() {
-		$this->PROVIDER_ID = 'IQSMS';
-		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_IQSMS_NAME');
-		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_IQSMS_DESCRIPTION');
-		$this->PROVIDER_HOMEPAGE = 'http://iqsms.ru/';
+	protected function __construct() {
+		$this->PROVIDER_ID = 'smsbliss';
+		$this->PROVIDER_NAME = GetMessage('OBX_SMS_SMSBLISS_PROV_NAME');
+		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_SMSBLISS_PROV_DSCR');
+		$this->PROVIDER_HOMEPAGE = 'https://smsbliss.ru/';
 		$this->_Settings = new Settings(
 			'obx.sms',
 			self::SETTINGS_PREFIX.$this->PROVIDER_ID(),
 			array(
 				'LOGIN' => array(
-					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_LOGIN'),
+					'NAME' => GetMessage('OBX_SMS_PROV_SMSBLISS_SETT_LOGIN'),
 					'TYPE' => 'STRING',
 					'VALUE' => '',
 					'SORT' => 100
 				),
 				'PASS' => array(
-					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_PASS'),
+					'NAME' => GetMessage('OBX_SMS_PROV_SMSBLISS_SETT_PASS'),
 					'TYPE' => 'PASSWORD',
 					'VALUE' => '',
 					'SORT' => 110
 				),
 				'FROM' => array(
-					'NAME' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_FROM'),
-					'DESCRIPTION' => GetMessage('OBX_SMS_PROV_IQSMS_SETT_FROM_DESCR'),
+					'NAME' => GetMessage('OBX_SMS_PROV_SMSBLISS_SETT_FROM'),
+					'DESCRIPTION' => GetMessage('OBX_SMS_PROV_SMSBLISS_SETT_FROM_DESCR'),
 					'TYPE' => 'STRING',
 					'VALUE' => '',
 					'SORT' => 120
@@ -56,8 +50,6 @@ class IqSms extends Provider {
 			)
 		);
 	}
-
-
 
 	protected function _send(&$telNo, &$text, &$countryCode) {
 		/** @global \CMain $APPLICATION */
@@ -67,7 +59,7 @@ class IqSms extends Provider {
 			'password' => ''.$this->_Settings->getOption('PASS'),
 			'statusQueueName' => 'defaultQueue',
 			'sender' => ''.$this->_Settings->getOption('FROM'),
-			'phone' => ''.$countryCode.$telNo,
+			'phone' => $countryCode.$telNo,
 			'text' => ''.$text,
 		);
 		if (!defined('BX_UTF') || BX_UTF !== true) {
@@ -76,14 +68,14 @@ class IqSms extends Provider {
 		$sms = http_build_query($sms);
 		$request = new Request(self::SEND_URL.'?'.$sms);
 		$result = $request->send();
+		list($messID, $status) = explode('=', $result);
 		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1'));
+			$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_1'));
 			return false;
 		}
-		list($messID, $status) = explode('=', $result);
 		if($status != 'accepted') {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array(
-				'#ERROR#' => $status
+			$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_2', array(
+				'#ERROR#' => $result
 			)));
 			return false;
 		}
@@ -94,22 +86,22 @@ class IqSms extends Provider {
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
 		$request = new Request(self::BALANCE_URL.'?'.http_build_query(array(
-			'login' => ''.$this->_Settings->getOption('LOGIN'),
-			'password' => ''.$this->_Settings->getOption('PASS')
-		)));
+				'login' => ''.$this->_Settings->getOption('LOGIN'),
+				'password' => ''.$this->_Settings->getOption('PASS')
+			)));
 		$result = $request->send();
 		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1'));
-			$arBalanceData['error'] = GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1');
+			$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_1'));
+			$arBalanceData['error'] = GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_1');
 			return false;
 		}
 		list($error, $balance) = explode('=', $result);
 		if(null === $balance) {
-			$error = GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array('#ERROR#' => $error));
+			$error = GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_2', array('#ERROR#' => $error));
 			$this->addError($error);
 			$arBalanceData['error'] = $error;
 			return false;
 		}
 		return $balance;
 	}
-}
+} 

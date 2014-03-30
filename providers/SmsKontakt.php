@@ -1,12 +1,10 @@
 <?php
 /*******************************************
- ** @product OBX:Market Bitrix Module     **
+ ** @product OBX:Sms Bitrix Module        **
  ** @authors                              **
  **         Maksim S. Makarov aka pr0n1x  **
- **         Morozov P. Artem aka tashiro  **
  ** @license Affero GPLv3                 **
  ** @mailto rootfavell@gmail.com          **
- ** @mailto tashiro@yandex.ru             **
  ** @copyright 2013 DevTop                **
  *******************************************/
 
@@ -33,7 +31,7 @@ class SmsKontakt extends Provider {
 
 	protected function __construct() {
 		$this->PROVIDER_NAME = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_NAME');
-		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
+		//$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_DESCRIPTION');
 		$this->PROVIDER_HOMEPAGE = 'http://sms-kontakt.ru/';
 		$this->_Settings = new Settings(
 			'obx.sms',
@@ -70,9 +68,10 @@ class SmsKontakt extends Provider {
 		$this->sign = md5($this->_Settings->getOption('USER_PHONE') . $this->_Settings->getOption('API_KEY'));
 	}
 
-	public function getBalance() {
+	public function getBalance(&$arBalanceData = null) {
 		$arResult = json_decode($this->_getBalance(), true);
 		if ($arResult[0]['result'] == 'success') {
+			$arBalanceData = $arResult[0];
 			return $arResult[0]['describe'];
 		} else {
 			$this->addError($arResult[0]['describe'], self::SEND_STATUS_FAIL);
@@ -80,11 +79,7 @@ class SmsKontakt extends Provider {
 		}
 	}
 
-	public function getMessageStatus($messageID) {
-		return 1;
-	}
-
-	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+	protected function _send(&$phoneNumber, &$text, &$countryCode) {
 		if( $countryCode != '7') {
 			$this->addError(GetMessage('OBX_SMS_PROVIDER_SMSKONTAKT_ERROR_1'));
 			return false;

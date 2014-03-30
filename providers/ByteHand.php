@@ -1,4 +1,13 @@
 <?php
+/*******************************************
+ ** @product OBX:Sms Bitrix Module        **
+ ** @authors                              **
+ **         Maksim S. Makarov aka pr0n1x  **
+ ** @license Affero GPLv3                 **
+ ** @mailto rootfavell@gmail.com          **
+ ** @copyright 2013 DevTop                **
+ *******************************************/
+
 namespace OBX\Sms\Provider;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
@@ -38,7 +47,7 @@ class ByteHand extends Provider
 		));
 	}
 
-	protected function _send(&$telNo, &$text, &$arFields, &$countryCode){
+	protected function _send(&$telNo, &$text, &$countryCode){
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
 		$sms = array(
@@ -75,8 +84,33 @@ class ByteHand extends Provider
 		return true;
 	}
 
-	public function getBalance() {
-
+	public function getBalance(&$arBalanceData = null) {
+		/** @global \CMain $APPLICATION */
+		$requestUrl = str_replace(
+			array('<ID>', '<KEY>'),
+			array($this->_Settings->getOption('CLID'), $this->_Settings->getOption('API_KEY')),
+			self::BALANCE_URL
+		);
+		$Request = new Request($requestUrl);
+		$response = $Request->send();
+		$response = json_decode($response, true);
+		if (!defined('BX_UTF') || BX_UTF !== true) {
+			$response = $APPLICATION->ConvertCharsetArray($response, 'UTF-8', LANG_CHARSET);
+		}
+		if(empty($response)) {
+			$arBalanceData = array('error' => GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_1'));
+			$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_1'));
+			return false;
+		}
+		$arBalanceData = $response;
+		if( $response['status'] != 0 ) {
+			$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_2', array(
+				'#CODE#' => $response['status'],
+				'#ERROR#' => $response['description']
+			)), $response['status']);
+			return false;
+		}
+		return $response['description'];
 	}
 
 	public function getMessageStatus($messageID) {

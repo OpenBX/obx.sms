@@ -1,12 +1,10 @@
 <?
 /*******************************************
- ** @product OBX:Market Bitrix Module     **
+ ** @product OBX:Sms Bitrix Module        **
  ** @authors                              **
  **         Maksim S. Makarov aka pr0n1x  **
- **         Morozov P. Artem aka tashiro  **
  ** @license Affero GPLv3                 **
  ** @mailto rootfavell@gmail.com          **
- ** @mailto tashiro@yandex.ru             **
  ** @copyright 2013 DevTop                **
  *******************************************/
 
@@ -25,7 +23,7 @@ class EMailProvider extends Provider {
 		$this->PROVIDER_DESCRIPTION = GetMessage('OBX_SMS_PROVIDER_EMAIL_DESCRIPTION');
 		$this->_Settings = new Settings(
 			'obx.sms',
-			'PROVIDER_'.$this->PROVIDER_ID,
+			self::SETTINGS_PREFIX.$this->PROVIDER_ID,
 			array(
 				'EMAIL' => array(
 					'NAME' => GetMessage('OBX_SMS_PROV_EMAIL_SETT_EMAIL'),
@@ -50,12 +48,7 @@ class EMailProvider extends Provider {
 		);
 	}
 
-
-	public function getBalance() {
-		return 0;
-	}
-
-	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+	protected function _send(&$phoneNumber, &$text, &$countryCode) {
 		$this->_Settings->syncSettings();
 		$email = $this->_Settings->getOption('EMAIL');
 		if(empty($email)) {

@@ -18,6 +18,8 @@ if( !$USER->IsAdmin() ) return;
 if( !CModule::IncludeModule('obx.core') ) return;
 if( !CModule::IncludeModule('obx.sms') ) return;
 
+CUtil::InitJSCore(array('jquery'));
+
 $arProvidersList = Provider::getProvidersList();
 $arProvidersSimpleList = array();
 foreach($arProvidersList as $Provider) {
@@ -49,9 +51,13 @@ $MainSettingsTab = new SettingsTab(
 );
 $ModuleSettings->addTab($MainSettingsTab);
 
-final class OBX_SMS_SettingsTab extends SettingsTab {
+final class OBX_SMS_ProviderSettingsTab extends SettingsTab {
+	private $providerID = null;
 	private $providerHomePage = null;
 	private $providerDescription = null;
+	public function setProviderID($providerID) {
+		$this->providerID = $providerID;
+	}
 	public function setProviderHomepage($homepage) {
 		$this->providerHomePage = $homepage;
 	}
@@ -59,14 +65,34 @@ final class OBX_SMS_SettingsTab extends SettingsTab {
 		$this->providerDescription = $description;
 	}
 	public function showTabContent() {
-		?>
+
+		// Описание провайдера
+		if(!empty($this->providerDescription)):?>
 		<tr><td colspan="2"><i><?=$this->providerDescription?></i></td></tr>
+		<?endif;
+
+		// Официальная страница провайдера
+		if(!empty($this->providerHomePage)):?>
 		<tr>
 			<td><?=GetMessage('OBX_SMS_OPTIONS_PROV_HOMEPAGE')?></td>
 			<td><a target="_blank" href="<?=$this->providerHomePage?>"><?=$this->providerHomePage?></a></td>
 		</tr>
-		<?
+		<?endif;
+
+		////////////////////////////
+		/// Настройки провайдера ///
 		parent::showTabContent();
+		////////////////////////////
+
+		// Баланс провайдера
+		if(!empty($this->providerID) && $this->providerID != 'EMAIL'):?>
+		<tr>
+			<td><?=GetMessage('OBX_SMS_OPTIONS_PROV_BALANCE')?></td>
+			<td>
+				<button class="obx-sms get-balance" data-provider-id="<?=$this->providerID?>"><?=GetMessage('OBX_SMS_OPTIONS_PROV_BALANCE_GET')?></button>
+			</td>
+		</tr>
+		<?endif;
 	}
 }
 foreach($arProvidersList as $Provider) {
@@ -75,7 +101,7 @@ foreach($arProvidersList as $Provider) {
 	if( $MainSettingsTab->getOption('PROVIDER_SELECTED') == $Provider->PROVIDER_ID() ) {
 		$providerSelected = true;
 	}
-	$TabSettings = new OBX_SMS_SettingsTab(
+	$TabSettings = new OBX_SMS_ProviderSettingsTab(
 		'obx.sms',
 		'PROV_'.$Provider->PROVIDER_ID(),
 		array(
@@ -85,6 +111,7 @@ foreach($arProvidersList as $Provider) {
 		),
 		$Provider->getSettings()
 	);
+	$TabSettings->setProviderID($Provider->PROVIDER_ID());
 	$TabSettings->setProviderHomepage($Provider->PROVIDER_HOMEPAGE());
 	$TabSettings->setProviderDescription($Provider->PROVIDER_DESCRIPTION());
 	$ModuleSettings->addTab($TabSettings);
@@ -110,5 +137,32 @@ $ModuleSettings->setRestoreConfirmMessage(GetMessage('OBX_SMS_SETT_RESTORE_DEF_C
 $ModuleSettings->show();
 
 ?>
+<script type="text/javascript">
+	(typeof(jQuery) != 'undefined') && (jQuery(function() {
+		var buttonText = {};
+		$('button.obx-sms.get-balance').on('click', function() {
+			var $this = $(this);
+			var providerID = $this.attr('data-provider-id');
+			if(typeof(buttonText[providerID]) == 'undefined') {
+				buttonText[providerID] = $this.text();
+			}
+			function success(data) {
+				console.log(data);
+				if(data.status > 0) {
+					alert('obx.sms error '+data.status+': '+data.data);
+				}
+				else {
+					$this.text(buttonText[providerID]+': '+data.balance);
+				}
+			}
+			$.ajax({
+				 url: '/bitrix/tools/obx.sms/ajson_prov_balance.php'
+				,data: {provider: providerID}
+				,success: success
+			});
+			return false;
+		});
+	}));
+</script>
 </div>
 <?

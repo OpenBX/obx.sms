@@ -1,4 +1,13 @@
 <?php
+/*******************************************
+ ** @product OBX:Sms Bitrix Module        **
+ ** @authors                              **
+ **         Maksim S. Makarov aka pr0n1x  **
+ ** @license Affero GPLv3                 **
+ ** @mailto rootfavell@gmail.com          **
+ ** @copyright 2013 DevTop                **
+ *******************************************/
+
 namespace OBX\Sms\Provider;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
@@ -13,7 +22,7 @@ class LittleSms extends Provider
 	public function __construct() {
 		$this->PROVIDER_ID = 'LittleSms';
 		$this->PROVIDER_NAME = 'LittleSms';
-		$this->PROVIDER_DESCRIPTION = 'LittleSms';
+		$this->PROVIDER_DESCRIPTION = '';
 		$this->PROVIDER_HOMEPAGE = 'http://littlesms.ru/';
 		$this->_Settings = new Settings('obx.sms', 'PROVIDER_'.$this->PROVIDER_ID, array(
 			'LOGIN' => array(
@@ -44,7 +53,7 @@ class LittleSms extends Provider
 		));
 	}
 
-	protected function _send(&$telNo, &$text, &$arFields, &$countryCode){
+	protected function _send(&$telNo, &$text, &$countryCode){
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
 		$request = new Request(self::SEND_URL);
@@ -78,11 +87,29 @@ class LittleSms extends Provider
 		return true;
 	}
 
-	public function getBalance() {
-
-	}
-
-	public function getMessageStatus($messageID) {
-
+	public function getBalance(&$arBalanceData) {
+		/** @global \CMain $APPLICATION */
+		global $APPLICATION;
+		$request = new Request(self::BALANCE_URL);
+		$request->setPost(array(
+			'user' => $this->_Settings->getOption('LOGIN'),
+			'apikey' => $this->_Settings->getOption('API_KEY'),
+		));
+		$result = $request->send();
+		$result = json_decode($result, true);
+		if (!defined('BX_UTF') || BX_UTF !== true) {
+			$result = $APPLICATION->ConvertCharsetArray($result, 'UTF-8', LANG_CHARSET);
+		}
+		if(empty($result)) {
+			$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_1');
+			$this->addError($arBalanceData['error']);
+			return false;
+		}
+		if($result['status'] != 'success') {
+			$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_2', array('#ERROR#' => $result['message']));
+			$this->addError($arBalanceData['error']);
+			return false;
+		}
+		return $result['balance'];
 	}
 }

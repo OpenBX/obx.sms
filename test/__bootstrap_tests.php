@@ -48,10 +48,11 @@ namespace OBX\Sms\Test {
 		protected $provider = null;
 
 		public function send() {
-			$success = $this->provider->send('+79080158883', 'тест: '.$this->provider->PROVIDER_ID());
-			if(!$success) {
-				$this->fail($this->provider->getLastError());
-			}
+//			$messageID = $this->provider->send('+79080158883', 'тест: '.$this->provider->PROVIDER_ID());
+//			if(false === $messageID) {
+//				$this->fail($this->provider->getLastError());
+//			}
+			$this->provider->getBalance();
 		}
 	}
 	SmsTestCase::includeLang(__FILE__);

@@ -1,4 +1,13 @@
 <?php
+/*******************************************
+ ** @product OBX:Sms Bitrix Module        **
+ ** @authors                              **
+ **         Maksim S. Makarov aka pr0n1x  **
+ ** @license Affero GPLv3                 **
+ ** @mailto rootfavell@gmail.com          **
+ ** @copyright 2013 DevTop                **
+ *******************************************/
+
 namespace OBX\Sms\Provider;
 use OBX\Core\Settings\Settings;
 
@@ -6,6 +15,8 @@ IncludeModuleLangFile(__FILE__);
 
 class TurboSmsUA extends Provider
 {
+	const SOAP_URL = 'http://turbosms.in.ua/api/wsdl.html';
+
 	protected $soapConn = null;
 	protected $bAuthorized = false;
 	protected $responseTextCheck = null;
@@ -42,8 +53,8 @@ class TurboSmsUA extends Provider
 				'SORT' => 130,
 			)
 		));
-		$this->soapConn = new \SoapClient('http://turbosms.in.ua/api/wsdl.html', array(
-			'trace' => 1
+		$this->soapConn = new \SoapClient(self::SOAP_URL, array(
+			//'trace' => 1
 		));
 	}
 
@@ -72,14 +83,21 @@ class TurboSmsUA extends Provider
 		return false;
 	}
 
-	protected function authorize() {
+	protected function _turbosms_authorize() {
 		if(true === $this->bAuthorized) return true;
 		$auth = array(
 			'login' => $this->_Settings->getOption('GATE_LOGIN'),
 			'password' => $this->_Settings->getOption('GATE_PASS')
 		);
 		if (empty($auth['login']) || empty($auth['password'])) return false;
-		$authResultText = $this->soapConn->Auth($auth)->AuthResult;
+		try {
+			$authResultText = $this->soapConn->Auth($auth)->AuthResult;
+		}
+		catch(\SoapFault $SoapFault) {
+			$this->addError(GetMessage('OBX_SMS_TURBOSMSUA_RESP_SEND_ERROR', array(
+				'#ERROR#' => $SoapFault->getMessage()
+			)));
+		}
 		if($this->checkResponse('auth_success', $authResultText)) {
 			$this->bAuthorized = true;
 			return true;
@@ -87,9 +105,8 @@ class TurboSmsUA extends Provider
 		return false;
 	}
 
-	protected function _send(&$telNo, &$text, &$arFields, &$countryCode){
-		//if( !$this->authorize() ) return false;
-		$this->authorize();
+	protected function _send(&$telNo, &$text, &$countryCode){
+		if(!$this->_turbosms_authorize()) return false;
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
 		if(empty($countryCode)) {
@@ -108,7 +125,14 @@ class TurboSmsUA extends Provider
 		if (!defined('BX_UTF') || BX_UTF !== true) {
 			$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
 		}
-		$smsResponse = $this->soapConn->SendSMS($sms)->SendSMSResult->ResultArray;
+		try {
+			$smsResponse = $this->soapConn->SendSMS($sms)->SendSMSResult->ResultArray;
+		}
+		catch(\SoapFault $SoapFault) {
+			$this->addError(GetMessage('OBX_SMS_TURBOSMSUA_RESP_SEND_ERROR', array(
+				'#ERROR#' => $SoapFault->getMessage()
+			)));
+		}
 		if(is_array($smsResponse) && $this->checkResponse('send_success', $smsResponse[0])) {
 			return $smsResponse[1];
 		}
@@ -118,11 +142,20 @@ class TurboSmsUA extends Provider
 		return false;
 	}
 
-	public function getBalance() {
-		if( !$this->authorize() ) return false;
-	}
-
-	public function getMessageStatus($messageID) {
-		if( !$this->authorize() ) return false;
+	public function getBalance(&$arBalanceData) {
+		if( !$this->_turbosms_authorize() ) {
+			$arBalanceData['error'] = $this->getLastError();
+			return false;
+		}
+		try {
+			$response = $this->soapConn->GetCreditBalance();
+		}
+		catch(\SoapFault $SoapFault) {
+			$this->addError(GetMessage('OBX_SMS_TURBOSMSUA_RESP_SEND_ERROR', array(
+				'#ERROR#' => $SoapFault->getMessage()
+			)));
+		}
+		$arBalanceData['CreditBalance'] = $response->GetCreditBalanceResult;
+		return $response->GetCreditBalanceResult;
 	}
 }

@@ -1,12 +1,10 @@
 <?php
 /*******************************************
- ** @product OBX:Market Bitrix Module     **
+ ** @product OBX:Sms Bitrix Module        **
  ** @authors                              **
  **         Maksim S. Makarov aka pr0n1x  **
- **         Morozov P. Artem aka tashiro  **
  ** @license Affero GPLv3                 **
  ** @mailto rootfavell@gmail.com          **
- ** @mailto tashiro@yandex.ru             **
  ** @copyright 2013 DevTop                **
  *******************************************/
 
@@ -86,7 +84,7 @@ class LetsAds extends Provider {
 		return $this->getStatus($messageID);
 	}
 
-	protected function _send(&$phoneNumber, &$text, &$arFields, &$countryCode) {
+	protected function _send(&$phoneNumber, &$text, &$countryCode) {
 		$result = $this->sendEx($this->_Settings->getOption('FROM'), $countryCode.$phoneNumber, $text);
 		return (!!$result);
 	}
@@ -159,11 +157,12 @@ class LetsAds extends Provider {
 		return $result;
 	}
 
-	public function getBalance() {
+	public function getBalance(&$arBalanceData = null) {
 		$result = $this->requestBalance();
 		if(false === $result) {
 			return false;
 		}
+		$arBalanceData = $result;
 		return $result['money'];
 	}
 
