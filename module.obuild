@@ -17,6 +17,7 @@
 %INSTALL_FOLDER%/php_interface/obx.sms :: KompeitoSms.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: LetsAds.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: LittleSms.php :: %BX_ROOT%/php_interface/obx.sms/
+%INSTALL_FOLDER%/php_interface/obx.sms :: SmsBliss.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: SmsKontakt.php :: %BX_ROOT%/php_interface/obx.sms/
 %INSTALL_FOLDER%/php_interface/obx.sms :: TurboSmsUA.php :: %BX_ROOT%/php_interface/obx.sms/
 

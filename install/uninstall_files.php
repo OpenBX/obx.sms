@@ -13,6 +13,7 @@ DeleteDirFilesEx("/bitrix/php_interface/obx.sms/IqSms.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/KompeitoSms.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/LetsAds.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/LittleSms.php");
+DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsBliss.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsKontakt.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/TurboSmsUA.php");
 DeleteDirFilesEx("/bitrix/tools/obx.sms");
