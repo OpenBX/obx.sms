@@ -222,6 +222,11 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 		return false;
 	}
 
+	/**
+	 * @param $rawPhoneNumber
+	 * @param &$countryCode
+	 * @return string|null
+	 */
 	static public function checkPhoneNumberDefault($rawPhoneNumber, &$countryCode = null) {
 		$rawPhoneNumber = str_replace(array(' ', '	', '-', '(', ')'), '', $rawPhoneNumber);
 		$regPhone = '~((?:\+)?[\d]{1,3}|8)([\d]{10})~';
@@ -237,6 +242,11 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 		return $phoneNumber;
 	}
 
+	/**
+	 * @param $rawPhoneNumber
+	 * @param &$countryCode
+	 * @return null|string
+	 */
 	public function checkPhoneNumber($rawPhoneNumber, &$countryCode = null) {
 		return self::checkPhoneNumberDefault($rawPhoneNumber, $countryCode);
 	}
