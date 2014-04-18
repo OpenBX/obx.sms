@@ -16,6 +16,7 @@ use OBX\Core\MessagePoolDecorator;
 use OBX\Core\Settings\ISettings;
 
 abstract class Provider extends MessagePoolDecorator implements ISettings {
+
 	static protected $_arProvidersList;
 	/** @var array Providers cache */
 	static protected $_arProviderListClassIndex;
@@ -23,6 +24,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	protected $PROVIDER_ID = '';
 	protected $PROVIDER_NAME = '';
 	protected $PROVIDER_DESCRIPTION = '';
+	protected $PROVIDER_HOMEPAGE = '';
 	protected $SORT = 100;
 
 	/**
@@ -30,6 +32,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	 * @var \OBX\Core\Settings\Settings | null
 	 */
 	protected $_Settings = null;
+	const SETTINGS_PREFIX = 'PROVIDER_';
 
 	protected $_lastSentMessage = null;
 	const DEFAULT_COUNTRY_CODE = '7';
@@ -41,7 +44,57 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 
 	final protected function __clone() {}
 
-	// +++ ISettings implementation
+	// +++ INTERFACE //////////////////////////////////////////////////////////////////
+	/**
+	 * Эта функция переопределяется у каждого провайдера отдельно
+	 * @param $telNo
+	 * @param $text
+	 * @param string $countryCode
+	 * @return int|bool
+	 */
+	abstract protected function _send(&$telNo, &$text, &$countryCode);
+
+	/**
+	 * @param $messageID
+	 * @return mixed
+	 */
+	public function getMessageStatus($messageID) {
+		return false;
+	}
+
+	/**
+	 * @param &$arBalanceData = null
+	 * @return float|false
+	 */
+	public function getBalance(&$arBalanceData = null) {
+		$arBalanceData = null;
+		return false;
+	}
+	// ^^^ INTERFACE //////////////////////////////////////////////////////////////////
+
+	/** @return string */
+	final public function PROVIDER_ID() {
+		return $this->PROVIDER_ID;
+	}
+
+	/** @return string */
+	final public function PROVIDER_NAME() {
+		return $this->PROVIDER_NAME;
+	}
+	/** @return string */
+	final public function PROVIDER_DESCRIPTION() {
+		return $this->PROVIDER_DESCRIPTION;
+	}
+	/** @return string */
+	final public function PROVIDER_HOMEPAGE() {
+		return $this->PROVIDER_HOMEPAGE;
+	}
+	/** @return int */
+	final public function SORT() {
+		return intval($this->SORT);
+	}
+
+	// +++ ISettings implementation ///////////////////////////////////////////////////
 	public function getSettings($bReturnArray = false) {
 		if($bReturnArray) {
 			return $this->_Settings->getSettings();
@@ -80,32 +133,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	public function restoreDefaults() {
 		return $this->_Settings->restoreDefaults();
 	}
-	// ^^^ ISettings implementation
-
-	/**
-	 * @return string
-	 */
-	final public function PROVIDER_ID() {
-		return $this->PROVIDER_ID;
-	}
-
-	/**
-	 * @return string
-	 */
-	final public function PROVIDER_NAME() {
-		return $this->PROVIDER_NAME;
-	}
-
-	/**
-	 * @return string
-	 */
-	final public function PROVIDER_DESCRIPTION() {
-		return $this->PROVIDER_DESCRIPTION;
-	}
-
-	final public function SORT() {
-		return intval($this->SORT);
-	}
+	// ^^^ ISettings implementation ///////////////////////////////////////////////////
 
 	/**
 	 *
@@ -167,7 +195,6 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 				$arFilesList[] = $elementOfDir;
 			}
 		}
-
 		foreach ($arFilesList as $providerFileName) {
 			__IncludeLang($_providerLangDir.'/'.$providerFileName);
 			@include $_providerDir.'/'.$providerFileName;
@@ -184,7 +211,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 
 	/**
 	 * @param $providerID
-	 * @return null
+	 * @return null|self
 	 */
 	final static public function factory($providerID) {
 		if (array_key_exists($providerID, self::$_arProvidersList)) {
@@ -201,7 +228,7 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	}
 	/**
 	 * Получить объект провайдера по умолчанию
-	 * @return Provider
+	 * @return self|null
 	 */
 	final static public function getCurrent() {
 		$curProvID = \COption::GetOptionString('obx.sms', 'COMMON_SETTINGS_PROVIDER_SELECTED');
@@ -265,27 +292,28 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 			$this->addError(GetMessage('OBX_SMS_PROVIDER_ERROR_801'), 801);
 			return false;
 		}
+		//if(empty($countryCode)) $countryCode = \Option::Get
 		if( empty($countryCode) ) $countryCode = static::DEFAULT_COUNTRY_CODE;
-		$bSuccess = $this->_send($phoneNumber, $text, $arFields, $countryCode);
+		if(is_array($arFields) && !empty($arFields)) {
+			$arReplaceFrom = array();
+			$arReplaceTo = array();
+			foreach($arFields as $replaceKey => &$replaceValue) {
+				$arReplaceFrom[] = '#'.$replaceKey.'#';
+				$arReplaceTo[] = $replaceValue;
+			}
+			$text = str_replace($arReplaceFrom, $arReplaceTo, $text);
+		}
+
+		$messageID = $this->_send($phoneNumber, $text, $countryCode);
 		$this->_lastSentMessage = array(
 			'COUNTRY' => $countryCode,
 			'PHONE' => $phoneNumber,
 			'TEXT' => $text,
-			'SUCCESS' => $bSuccess?'Y':'N',
+			'SUCCESS' => $messageID?'Y':'N',
 		);
-		if(!$bSuccess) $this->_lastSentMessage['ERROR'] = $this->getLastError();
-		return $bSuccess;
+		if(false === $messageID) $this->_lastSentMessage['ERROR'] = $this->getLastError();
+		return $messageID;
 	}
-
-	/**
-	 * Эта функция переопределяется у каждого провайдера отдельно
-	 * @param $telNo
-	 * @param $text
-	 * @param $arFields
-	 * @param string $countryCode
-	 * @return int|bool
-	 */
-	abstract protected function _send(&$telNo, &$text, &$arFields, &$countryCode);
 
 	/**
 	 * Вернуть последнее отправленное сообщение
@@ -299,8 +327,11 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	 * TODO:
 	 * список номеров - один текст сообщения
 	 */
-	public function sendBatch() {
+	public function sendBatch($arBatch) {
+
 	}
+
+
 
 	/*
 	 * Персональная отправка сообщений
@@ -308,16 +339,4 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	 * send = Один номер - один шаблон сообщения
 	 * sendBatch = Список персон - один шаблон
 	 */
-
-	/**
-	 * @return float
-	 */
-	abstract public function getBalance();
-
-	/**
-	 * @param $messageID
-	 * @return mixed
-	 */
-	abstract public function getMessageStatus($messageID);
-
 }
