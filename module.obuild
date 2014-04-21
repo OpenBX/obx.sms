@@ -29,6 +29,8 @@
 		path: %SELF_FOLDER%/classes
 	[options]
 		path: %SELF_FOLDER%/options.php
+	[include]
+		path: %SELF_FOLDER%/include.php
 	[install]
 		path: %INSTALL_FOLDER%/
 		exclude_path: %INSTALL_FOLDER%/modules/*
