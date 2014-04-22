@@ -8,8 +8,5 @@
  ** @copyright 2013 DevTop                **
  *******************************************/
 
-$arModuleClasses = array(
-	 'OBX\Sms\Settings\ModuleSettingsMainTab'	=> 'classes/Settings.php'
-	,'OBX\Sms\Provider\Provider'				=> 'classes/Provider.php'
-);
-return $arModuleClasses;
+
+ 
