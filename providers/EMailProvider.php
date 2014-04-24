@@ -50,8 +50,10 @@ class EMailProvider extends Provider {
 
 	protected function _send(&$phoneNumber, &$text, &$countryCode) {
 		$this->_Settings->syncSettings();
-		$email = $this->_Settings->getOption('EMAIL');
-		if(empty($email)) {
+		$email_to = $this->_Settings->getOption('EMAIL');
+		$CAllEvent = new \CAllEvent();
+		$eol = $CAllEvent->GetMailEOL();
+		if(empty($email_to)) {
 			$this->addError(GetMessage(
 					'OBX_SMS_PROV_EMAIL_ERROR_1',
 					array('#NAME#' => $this->PROVIDER_NAME())
@@ -60,16 +62,50 @@ class EMailProvider extends Provider {
 		}
 		$from = trim($this->getSettings()->getOption('FROM'));
 		$charset = LANG_CHARSET;
-		$additional_headers = "Content-type: text/plain; charset=$charset\n\r";
-		if(!empty($from)) {
-			$additional_headers .= "From: $from\n\r";
-		}
-		$bSuccess = mail(
-			$email,
-			GetMessage('OBX_SMS_PROV_EMAIL_SEND_SUBJ', array('#NUMBER#' => $phoneNumber)),
-			GetMessage('OBX_SMS_PROB_EMAIL_SEND_TEXT')."\n".$text,
-			$additional_headers
+		$arMailHeaders = array(
+			'Content-type' => 'text/plain; charset='.$charset
 		);
+		if(!empty($from)) {
+			$arMailHeaders['From'] = $from;
+		}
+		$bConvertMailHeader = (\COption::GetOptionString("main", "convert_mail_header", "Y")=="Y")?true:false;
+		$bMsSmtp = (defined("BX_MS_SMTP") && BX_MS_SMTP===true)?true:false;
+		$bConvertNewLine2Win = (\COption::GetOptionString("main", "CONVERT_UNIX_NEWLINE_2_WINDOWS", "N")=="Y")?true:false;
+
+		$subject = GetMessage('OBX_SMS_PROV_EMAIL_SEND_SUBJ', array('#NUMBER#' => $phoneNumber));
+		$text = GetMessage('OBX_SMS_PROB_EMAIL_SEND_TEXT')."\n".$text;
+		$text = str_replace("\r\n", "\n", $text);
+		if(true === $bConvertNewLine2Win) {
+			$text = str_replace("\n", "\r\n", $text);
+		}
+
+		$additional_headers = '';
+		foreach($arMailHeaders as $hKey => &$hValue) {
+			if(true === $bConvertMailHeader) {
+				if($hKey == 'From' || $hKey == 'CC') {
+					$hValue = $CAllEvent->EncodeHeaderFrom($hValue, $charset);
+				}
+				else {
+					$hValue = $CAllEvent->EncodeMimeString($hValue, $charset);
+				}
+				if(true === $bMsSmtp) {
+					if( ($hKey=='From'||$hKey=='To') && $hValue != '') {
+						$hValue = preg_replace("/(.*)\\<(.*)\\>/i", '$2', $hValue);
+					}
+				}
+			}
+			$additional_headers .= $hKey.': '.$hValue.$eol;
+		}
+		if($bConvertMailHeader) {
+			$email_to = $CAllEvent->EncodeHeaderFrom($email_to, $charset);
+			$subject = $CAllEvent->EncodeMimeString($subject, $charset);
+		}
+
+		if(defined("BX_MS_SMTP") && BX_MS_SMTP===true) {
+			$email_to = preg_replace("/(.*)\\<(.*)\\>/i", '$2', $email_to);
+		}
+
+		$bSuccess = bxmail($email_to, $subject, $text, $additional_headers);
 		if(!$bSuccess) {
 			$this->addError(GetMessage('OBX_SMS_PROV_EMAIL_ERROR_2'), 2);
 			return false;
