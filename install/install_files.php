@@ -35,5 +35,6 @@ OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/ph
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/SmsKontakt.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/TurboSmsUA.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/tools/obx.sms", $_SERVER["DOCUMENT_ROOT"]."/bitrix/tools/", true, true);
+OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/admin/obx_sms_log.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/admin/", true, true);
 if($bConnectEpilog) require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_after.php");
 ?>

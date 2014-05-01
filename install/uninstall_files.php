@@ -17,5 +17,6 @@ DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsBliss.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsKontakt.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/TurboSmsUA.php");
 DeleteDirFilesEx("/bitrix/tools/obx.sms");
+DeleteDirFilesEx("/bitrix/admin/obx_sms_log.php");
 if($bConnectEpilog) require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_after.php");
 ?>

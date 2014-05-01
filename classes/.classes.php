@@ -11,5 +11,6 @@
 $arModuleClasses = array(
 	 'OBX\Sms\Settings\ModuleSettingsMainTab'	=> 'classes/Settings.php'
 	,'OBX\Sms\Provider\Provider'				=> 'classes/Provider.php'
+	,'OBX\Sms\Provider\SentLog'					=> 'classes/SentLog.php'
 );
 return $arModuleClasses;

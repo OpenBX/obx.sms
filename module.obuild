@@ -1,5 +1,5 @@
 ##########################################
-## @product OBX:SmsMaster Bitrix Module ##
+## @product OBX:Sms Bitrix Module       ##
 ## @authors                             ##
 ##        Maksim S. Makarov aka pr0n1x  ##
 ## @license Affero GPLv3                ##
@@ -22,6 +22,7 @@
 %INSTALL_FOLDER%/php_interface/obx.sms :: TurboSmsUA.php :: %BX_ROOT%/php_interface/obx.sms/
 
 %INSTALL_FOLDER%/tools/ :: obx.sms :: %BX_ROOT%/tools/
+%INSTALL_FOLDER%/admin/ :: obx_sms_*.php :: %BX_ROOT%/admin/
 
 [RAW_LANG_CHECK]
 {

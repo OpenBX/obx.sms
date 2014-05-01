@@ -35,6 +35,7 @@ DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/SmsBliss
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/SmsKontakt.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/TurboSmsUA.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/tools/obx.sms");
+DeleteDirFilesEx("/bitrix/modules/obx.sms/install/admin/obx_sms_log.php");
 if( ! is_dir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms") ) {
 	@mkdir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms", BX_DIR_PERMISSIONS, true);
 }
@@ -51,5 +52,9 @@ if( ! is_dir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/tools") 
 	@mkdir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/tools", BX_DIR_PERMISSIONS, true);
 }
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/tools/obx.sms", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/tools/", true, true);
+if( ! is_dir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/admin") ) {
+	@mkdir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/admin", BX_DIR_PERMISSIONS, true);
+}
+OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/admin/obx_sms_log.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/admin/", true, true);
 if($bConnectEpilog) require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_after.php");
 ?>
