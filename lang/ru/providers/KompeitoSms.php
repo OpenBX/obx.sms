@@ -9,7 +9,7 @@ $MESS['OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM'] = 'Имя или номер отпр
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM_PH'] = 'пр.: SuperMarket';
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SETT_FROM_DSCR'] = 'Отправителя предварительно надо <a target="_blank" href="https://cabinet.kompeito.ru/cabinet/cabinet/">зарегистрировать</a> (вкладка Разрешенные адреса отправителя)';
 
-$MESS['OBX_SMS_PROV_KOMPEITOSMS_AUTH_ERROR'] = 'Ошибка авторизации';
+$MESS['OBX_SMS_PROV_KOMPEITOSMS_CONN_ERROR'] = 'Сервер kompeito.ru вернул ошибку';
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SEND_ERROR'] = 'Сервер kompeito.ru вернул ошибку с кодом #CODE#: #ERROR#';
 
 $MESS['OBX_SMS_PROV_KOMPEITOSMS_SEND_STATUS_0'] = 'Поставлено в очередь на отправку';

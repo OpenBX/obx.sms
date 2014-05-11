@@ -35,6 +35,10 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 	protected $_lastSentMessage = null;
 	const DEFAULT_COUNTRY_CODE = '7';
 
+	const E_GET_BAL_STATUS_PROV_ID_NOT_FOUND = 3; // Не указан идентификатор провайдера
+	const E_GET_BAL_STATUS_NO_METHOD = 4; // Для провайдера не реализован метод получения баланса
+	const E_GET_BAL_STATUS_ERROR = 5; // Метод полчения баланса вернул ошибку: #ERROR#
+
 	/**
 	 * В конструкторе обязательно надо определить переменную $this->_Settings
 	 */
@@ -62,11 +66,11 @@ abstract class Provider extends MessagePoolDecorator implements ISettings {
 
 	/**
 	 * @param &$arBalanceData = null
-	 * @return float|false
+	 * @return float|false|null
 	 */
-	public function getBalance(&$arBalanceData = null) {
+	public function getBalance(&$arBalanceData = array()) {
 		$arBalanceData = null;
-		return false;
+		return null;
 	}
 	// ^^^ INTERFACE //////////////////////////////////////////////////////////////////
 

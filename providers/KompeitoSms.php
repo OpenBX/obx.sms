@@ -9,6 +9,7 @@
  *******************************************/
 
 namespace OBX\Sms\Provider;
+use OBX\Core\Exceptions\Curl\RequestError;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
 
@@ -78,9 +79,6 @@ class KompeitoSms extends Provider {
 				)
 			)
 		);
-		$this->soapConn = new \SoapClient(self::SOAP_URL, array(
-			//'trace' => 1
-		));
 
 		$this->arSendStatusCodes = array(
 			0 => GetMessage('OBX_SMS_PROV_KOMPEITOSMS_SEND_STATUS_0'),
@@ -102,6 +100,25 @@ class KompeitoSms extends Provider {
 		);
 	}
 
+
+	protected function _initSoapConnection($throwException = false) {
+		if(null === $this->soapConn) {
+			try {
+				$this->soapConn = new \SoapClient(self::SOAP_URL, array(
+					//'trace' => 1,
+				));
+			}
+			catch(\SoapFault $e) {
+				if(true === $throwException) {
+					throw $e;
+				}
+				$this->addErrorException($e);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	protected function _send(&$phoneNumber, &$text, &$countryCode) {
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
@@ -116,11 +133,11 @@ class KompeitoSms extends Provider {
 			$sms['message'] = $APPLICATION->ConvertCharset($sms['message'], LANG_CHARSET, 'UTF-8');
 		}
 		try {
+			$this->_initSoapConnection(true);
 			$response = $this->soapConn->sendSms($sms['login'], $sms['password'], $sms['from'], $sms['to'], $sms['message']);
 		}
 		catch(\SoapFault $SoapFault) {
-			// Если это произошло, значит неверный логин или пароль
-			$this->addError(GetMessage('OBX_SMS_PROV_KOMPEITOSMS_AUTH_ERROR'));
+			$this->addErrorException($SoapFault, GetMessage('OBX_SMS_PROV_KOMPEITOSMS_CONN_ERROR').': ');
 			return false;
 		}
 
@@ -138,18 +155,25 @@ class KompeitoSms extends Provider {
 	}
 
 	public function getBalance(&$arBalanceData) {
-		$request = new Request(self::BALANCE_URL.'?'.http_build_query(array(
-			'login' => $this->_Settings->getOption('LOGIN'),
-			'pass' => $this->_Settings->getOption('PASS')
-		)));
-		$result = $request->send();
-		list($credits, $money) = explode("\n", $result);
-		if($request->getStatus() != 200) {
-			$this->addError(GetMessage('OBX_SMS_PROV_KOMPEITOSMS_AUTH_ERROR'));
-			$arBalanceData['error'] = GetMessage('OBX_SMS_PROV_KOMPEITOSMS_AUTH_ERROR');
+		$credits = 'error';
+		try {
+			$request = new Request(self::BALANCE_URL.'?'.http_build_query(array(
+					'login' => $this->_Settings->getOption('LOGIN'),
+					'pass' => $this->_Settings->getOption('PASS')
+				)));
+			$result = $request->send();
+			list($credits, $money) = explode("\n", $result);
+			if($request->getStatus() != 200) {
+				$this->addError(GetMessage('OBX_SMS_PROV_KOMPEITOSMS_CONN_ERROR'));
+				$arBalanceData['error'] = GetMessage('OBX_SMS_PROV_KOMPEITOSMS_CONN_ERROR');
+				return false;
+			}
+			$credits = str_replace('bc:', '', $credits);
+		}
+		catch(RequestError $e) {
+			$this->addErrorException($e);
 			return false;
 		}
-		$credits = str_replace('bc:', '', $credits);
 		return $credits;
 	}
 }

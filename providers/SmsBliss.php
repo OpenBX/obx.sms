@@ -9,6 +9,7 @@
  *******************************************/
 
 namespace OBX\Sms\Provider;
+use OBX\Core\Exceptions\Curl\RequestError;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
 
@@ -54,6 +55,7 @@ class SmsBliss extends Provider {
 	protected function _send(&$telNo, &$text, &$countryCode) {
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
+		$messID = false;
 		$sms = array(
 			'login' => ''.$this->_Settings->getOption('LOGIN'),
 			'password' => ''.$this->_Settings->getOption('PASS'),
@@ -66,17 +68,23 @@ class SmsBliss extends Provider {
 			$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
 		}
 		$sms = http_build_query($sms);
-		$request = new Request(self::SEND_URL.'?'.$sms);
-		$result = $request->send();
-		list($messID, $status) = explode('=', $result);
-		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_1'));
-			return false;
+		try {
+			$request = new Request(self::SEND_URL.'?'.$sms);
+			$result = $request->send();
+			list($messID, $status) = explode('=', $result);
+			if(empty($result)) {
+				$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_1'));
+				return false;
+			}
+			if($status != 'accepted') {
+				$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_2', array(
+					'#ERROR#' => $result
+				)));
+				return false;
+			}
 		}
-		if($status != 'accepted') {
-			$this->addError(GetMessage('OBX_SMS_SMSBLISS_SEND_ERROR_2', array(
-				'#ERROR#' => $result
-			)));
+		catch(RequestError $e) {
+			$this->addErrorException($e);
 			return false;
 		}
 		return $messID;

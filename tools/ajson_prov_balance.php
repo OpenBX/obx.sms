@@ -32,24 +32,22 @@ function obx_sms_get_provider_balance_json() {
 
 	$Provider = Provider::factory($providerID);
 	if(null === $Provider) {
-		$arJSON['status'] = 3;
+		$arJSON['status'] = Provider::E_GET_BAL_STATUS_PROV_ID_NOT_FOUND;
 		$arJSON['data'] = GetMessage('OBX_SMS_AJSON_BALANCE_STATUS_3');
 		return $arJSON;
 	}
 
-	$arBalanceData = null;
+	$arBalanceData = array();
 	$balance = $Provider->getBalance($arBalanceData);
-	if(false === $balance) {
-		if(null === $arBalanceData) {
-			$arJSON['status'] = 4;
-			$arJSON['data'] = GetMessage('OBX_SMS_AJSON_BALANCE_STATUS_4');
-		}
-		else {
-			$arJSON['status'] = 5;
-			$arJSON['data'] = GetMessage('OBX_SMS_AJSON_BALANCE_STATUS_5', array(
-				'#ERROR#' => $Provider->getLastError()
-			));
-		}
+	if(null === $balance && null === $arBalanceData) {
+		$arJSON['status'] = Provider::E_GET_BAL_STATUS_NO_METHOD;
+		$arJSON['data'] = GetMessage('OBX_SMS_AJSON_BALANCE_STATUS_4');
+	}
+	elseif(false === $balance) {
+		$arJSON['status'] = Provider::E_GET_BAL_STATUS_ERROR;
+		$arJSON['data'] = GetMessage('OBX_SMS_AJSON_BALANCE_STATUS_5', array(
+			'#ERROR#' => $Provider->getLastError()
+		));
 		return $arJSON;
 	}
 

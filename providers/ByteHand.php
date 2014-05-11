@@ -11,6 +11,7 @@
 namespace OBX\Sms\Provider;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
+use OBX\Core\Exceptions\Curl as CurlEx;
 IncludeModuleLangFile(__FILE__);
 
 class ByteHand extends Provider
@@ -64,23 +65,30 @@ class ByteHand extends Provider
 			array('<ID>', '<KEY>', '<SIGNATURE>', '<PHONE>', '<TEXT>'),
 			array($sms['ID'], $sms['KEY'], $sms['SIGNATURE'], urlencode($sms['PHONE']), urlencode($sms['TEXT'])),
 			self::SEND_URL);
-		$Request = new Request($requestUrl);
-		$response = $Request->send();
-		$response = json_decode($response, true);
-		if (!defined('BX_UTF') || BX_UTF !== true) {
-			$response = $APPLICATION->ConvertCharsetArray($response, 'UTF-8', LANG_CHARSET);
+		try {
+			$Request = new Request($requestUrl);
+			$response = $Request->send();
+			$response = json_decode($response, true);
+			if (!defined('BX_UTF') || BX_UTF !== true) {
+				$response = $APPLICATION->ConvertCharsetArray($response, 'UTF-8', LANG_CHARSET);
+			}
+			if(empty($response)) {
+				$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_1'));
+				return false;
+			}
+			if( $response['status'] != 0 ) {
+				$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_2', array(
+					'#CODE#' => $response['status'],
+					'#ERROR#' => $response['description']
+				)), $response['status']);
+				return false;
+			}
 		}
-		if(empty($response)) {
-			$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_1'));
+		catch (CurlEx\RequestError $e) {
+			$this->addErrorException($e);
 			return false;
 		}
-		if( $response['status'] != 0 ) {
-			$this->addError(GetMessage('OBX_SMS_BYTEHAND_SEND_ERROR_2', array(
-				'#CODE#' => $response['status'],
-				'#ERROR#' => $response['description']
-			)), $response['status']);
-			return false;
-		}
+
 		return true;
 	}
 

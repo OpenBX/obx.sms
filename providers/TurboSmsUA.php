@@ -53,9 +53,24 @@ class TurboSmsUA extends Provider
 				'SORT' => 130,
 			)
 		));
-		$this->soapConn = new \SoapClient(self::SOAP_URL, array(
-			//'trace' => 1
-		));
+	}
+
+	protected function _initSoapConnection($throwException = false) {
+		if(null === $this->soapConn) {
+			try {
+				$this->soapConn = new \SoapClient(self::SOAP_URL, array(
+					//'trace' => 1,
+				));
+			}
+			catch(\SoapFault $e) {
+				if(true === $throwException) {
+					throw $e;
+				}
+				$this->addErrorException($e);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	protected function checkResponse($checkCode, $response) {
@@ -91,6 +106,7 @@ class TurboSmsUA extends Provider
 		);
 		if (empty($auth['login']) || empty($auth['password'])) return false;
 		try {
+			$this->_initSoapConnection(true);
 			$authResultText = $this->soapConn->Auth($auth)->AuthResult;
 		}
 		catch(\SoapFault $SoapFault) {
@@ -126,6 +142,7 @@ class TurboSmsUA extends Provider
 			$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
 		}
 		try {
+			$this->_initSoapConnection(true);
 			$smsResponse = $this->soapConn->SendSMS($sms)->SendSMSResult->ResultArray;
 		}
 		catch(\SoapFault $SoapFault) {

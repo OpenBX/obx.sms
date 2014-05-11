@@ -9,6 +9,7 @@
  *******************************************/
 
 namespace OBX\Sms\Provider;
+use OBX\Core\Exceptions\Curl\RequestError;
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
 
@@ -56,60 +57,75 @@ class LittleSms extends Provider
 	protected function _send(&$telNo, &$text, &$countryCode){
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
-		$request = new Request(self::SEND_URL);
-		$sms = array(
-			'user' => $this->_Settings->getOption('LOGIN'),
-			'apikey' => $this->_Settings->getOption('API_KEY'),
-			'sender' => $this->_Settings->getOption('SENDER'),
-			'recipients' => $countryCode.$telNo,
-			'encoding' => 'utf-8',
-			'message' => $text,
-			'type' => '0',
-			'test' => (($this->_Settings->getOption('TEST_MODE')=='Y')?'1':'0')
-		);
-		if (!defined('BX_UTF') || BX_UTF !== true) {
-			$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
+		try {
+			$request = new Request(self::SEND_URL);
+			$sms = array(
+				'user' => $this->_Settings->getOption('LOGIN'),
+				'apikey' => $this->_Settings->getOption('API_KEY'),
+				'sender' => $this->_Settings->getOption('SENDER'),
+				'recipients' => $countryCode.$telNo,
+				'encoding' => 'utf-8',
+				'message' => $text,
+				'type' => '0',
+				'test' => (($this->_Settings->getOption('TEST_MODE')=='Y')?'1':'0')
+			);
+			if (!defined('BX_UTF') || BX_UTF !== true) {
+				$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
+			}
+			$request->setPost($sms);
+			$result = $request->send();
+			$result = json_decode($result, true);
+			if (!defined('BX_UTF') || BX_UTF !== true) {
+				$result = $APPLICATION->ConvertCharsetArray($result, 'UTF-8', LANG_CHARSET);
+			}
+			if(empty($result)) {
+				$this->addError(GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_1'));
+				return false;
+			}
+			if($result['status'] != 'success') {
+				$this->addError(GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_2', array('#ERROR#' => $result['message'])));
+				return false;
+			}
 		}
-		$request->setPost($sms);
-		$result = $request->send();
-		$result = json_decode($result, true);
-		if (!defined('BX_UTF') || BX_UTF !== true) {
-			$result = $APPLICATION->ConvertCharsetArray($result, 'UTF-8', LANG_CHARSET);
+		catch (RequestError $e) {
+			$this->addErrorException($e);
 		}
-		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_1'));
-			return false;
-		}
-		if($result['status'] != 'success') {
-			$this->addError(GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_2', array('#ERROR#' => $result['message'])));
-			return false;
-		}
+
 		return true;
 	}
 
 	public function getBalance(&$arBalanceData) {
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
-		$request = new Request(self::BALANCE_URL);
-		$request->setPost(array(
-			'user' => $this->_Settings->getOption('LOGIN'),
-			'apikey' => $this->_Settings->getOption('API_KEY'),
-		));
-		$result = $request->send();
-		$result = json_decode($result, true);
-		if (!defined('BX_UTF') || BX_UTF !== true) {
-			$result = $APPLICATION->ConvertCharsetArray($result, 'UTF-8', LANG_CHARSET);
+		$result = false;
+		try {
+			$request = new Request(self::BALANCE_URL);
+			$request->setPost(array(
+				'user' => $this->_Settings->getOption('LOGIN'),
+				'apikey' => $this->_Settings->getOption('API_KEY'),
+			));
+			$result = $request->send();
+			$result = json_decode($result, true);
+			if (!defined('BX_UTF') || BX_UTF !== true) {
+				$result = $APPLICATION->ConvertCharsetArray($result, 'UTF-8', LANG_CHARSET);
+			}
+			if(empty($result)) {
+				$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_1');
+				$this->addError($arBalanceData['error']);
+				return false;
+			}
+			if($result['status'] != 'success') {
+				$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_2', array('#ERROR#' => $result['message']));
+				$this->addError($arBalanceData['error']);
+				return false;
+			}
+			$result = $result['balance'];
 		}
-		if(empty($result)) {
-			$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_1');
-			$this->addError($arBalanceData['error']);
+		catch(RequestError $e) {
+			$this->addErrorException($e);
 			return false;
 		}
-		if($result['status'] != 'success') {
-			$arBalanceData['error'] = GetMessage('OBX_SMS_LITTLESMS_SEND_ERROR_2', array('#ERROR#' => $result['message']));
-			$this->addError($arBalanceData['error']);
-			return false;
-		}
-		return $result['balance'];
+
+		return $result;
 	}
 }

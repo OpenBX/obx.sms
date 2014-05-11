@@ -12,6 +12,7 @@ namespace OBX\Sms\Provider;
 
 use OBX\Core\Settings\Settings;
 use OBX\Core\Curl\Request;
+use OBX\Core\Exceptions\Curl\RequestError;
 
 IncludeModuleLangFile(__FILE__);
 
@@ -74,19 +75,26 @@ class IqSms extends Provider {
 			$sms = $APPLICATION->ConvertCharsetArray($sms, LANG_CHARSET, 'UTF-8');
 		}
 		$sms = http_build_query($sms);
-		$request = new Request(self::SEND_URL.'?'.$sms);
-		$result = $request->send();
-		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1'));
+		try {
+			$request = new Request(self::SEND_URL.'?'.$sms);
+			$result = $request->send();
+			if(empty($result)) {
+				$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1'));
+				return false;
+			}
+			list($messID, $status) = explode('=', $result);
+			if($status != 'accepted') {
+				$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array(
+					'#ERROR#' => $status
+				)));
+				return false;
+			}
+		}
+		catch(RequestError $e) {
+			$this->addErrorException($e);
 			return false;
 		}
-		list($messID, $status) = explode('=', $result);
-		if($status != 'accepted') {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array(
-				'#ERROR#' => $status
-			)));
-			return false;
-		}
+
 		return $messID;
 	}
 

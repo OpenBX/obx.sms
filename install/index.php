@@ -17,7 +17,7 @@ class obx_sms extends CModule
 	var $MODULE_VERSION_DATE;
 	var $MODULE_NAME;
 	var $MODULE_DESCRIPTION;
-	var $MODULE_GROUP_RIGHTS = "Y";
+	var $MODULE_GROUP_RIGHTS = "N";
 
 	protected $installDir = null;
 	protected $moduleDir = null;
