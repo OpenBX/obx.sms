@@ -3,10 +3,8 @@
  ** @product OBX:Market Bitrix Module     **
  ** @authors                              **
  **         Maksim S. Makarov aka pr0n1x  **
- **         Morozov P. Artem aka tashiro  **
  ** @license Affero GPLv3                 **
  ** @mailto rootfavell@gmail.com          **
- ** @mailto tashiro@yandex.ru             **
  ** @copyright 2013 DevTop                **
  *******************************************/
 
@@ -37,15 +35,17 @@ class obx_sms extends CModule
 	protected $bSuccessUnInstallEvents = false;
 	protected $bSuccessUnInstallTasks = true;
 	protected $bSuccessUnInstallData = false;
+	protected $stepsSessionKey = null;
 
 	const DB = 1;
 	const FILES = 2;
 	const DEPS = 4;
 	const EVENTS = 8;
 	const TASKS = 16;
-	const TARGETS = 31;
+	const ALL_TARGETS = 31;
 
 	public function obx_sms() {
+		self::includeLangFile();
 		$this->installDir = str_replace(array("\\", "//"), "/", __FILE__);
 		//10 == strlen("/index.php")
 		//8 == strlen("/install")
@@ -53,7 +53,7 @@ class obx_sms extends CModule
 		$this->moduleDir = substr($this->installDir , 0, strlen($this->installDir ) - 8);
 		$this->bxModulesDir = $_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules";
 
-		$arModuleVersion = array();
+		/** @noinspection PhpIncludeInspection */
 		$arModuleVersion = include($this->installDir."/version.php");
 		$this->MODULE_VERSION = $arModuleVersion["VERSION"];
 		$this->MODULE_VERSION_DATE = $arModuleVersion["VERSION_DATE"];
@@ -62,6 +62,7 @@ class obx_sms extends CModule
 		$this->MODULE_DESCRIPTION = GetMessage("OBX_SMS_MODULE_INSTALL_DESCRIPTION");
 		$this->PARTNER_NAME = GetMessage("OBX_SMS_PARTNER_NAME");
 		$this->PARTNER_URI = GetMessage("OBX_SMS_PARTNER_URI");
+		$this->linkStepsToSession();
 	}
 
 	public function getErrors() {
@@ -76,11 +77,54 @@ class obx_sms extends CModule
 		return $this->arMessages;
 	}
 
+	protected function linkStepsToSession() {
+		$this->stepsSessionKey = md5('__MODULE_INSTALL_STEPS_'.$this->MODULE_ID.'_'.$this->MODULE_VERSION);
+//		if(array_key_exists($this->stepsSessionKey, $_SESSION)) {
+//			$timeDelta = time() - $_SESSION[$sessionKey]['TIMESTAMP'];
+//			if($timeDelta < 0 || $timeDelta >= 60) {
+//				unset($_SESSION[$sessionKey]);
+//			}
+//		}
+		if(!array_key_exists($this->stepsSessionKey, $_SESSION)) {
+			$_SESSION[$this->stepsSessionKey] = array(
+				'TIMESTAMP' => time(),
+				'I_DB'		=> &$this->bSuccessInstallDB,
+				'I_FILES'	=> &$this->bSuccessInstallFiles,
+				'I_DEPS'	=> &$this->bSuccessInstallDeps,
+				'I_EVENTS'	=> &$this->bSuccessInstallEvents,
+				'I_TASKS'	=> &$this->bSuccessInstallTasks,
+				'I_DATA'	=> &$this->bSuccessInstallData,
+
+				'U_DB'		=> &$this->bSuccessUnInstallDB,
+				'U_FILES'	=> &$this->bSuccessUnInstallFiles,
+				'U_DEPS'	=> &$this->bSuccessUnInstallDeps,
+				'U_EVENTS'	=> &$this->bSuccessUnInstallEvents,
+				'U_TASKS'	=> &$this->bSuccessUnInstallTasks,
+				'U_DATA'	=> &$this->bSuccessUnInstallData
+			);
+		}
+		else {
+			$this->bSuccessInstallDB		= &$_SESSION[$this->stepsSessionKey]['I_DB'];
+			$this->bSuccessInstallFiles		= &$_SESSION[$this->stepsSessionKey]['I_FILES'];
+			$this->bSuccessUnInstallDeps	= &$_SESSION[$this->stepsSessionKey]['I_DEPS'];
+			$this->bSuccessInstallEvents	= &$_SESSION[$this->stepsSessionKey]['I_EVENTS'];
+			$this->bSuccessInstallTasks		= &$_SESSION[$this->stepsSessionKey]['I_TASKS'];
+			$this->bSuccessInstallData		= &$_SESSION[$this->stepsSessionKey]['I_DATA'];
+
+			$this->bSuccessInstallDB		= &$_SESSION[$this->stepsSessionKey]['U_DB'];
+			$this->bSuccessInstallFiles		= &$_SESSION[$this->stepsSessionKey]['U_FILES'];
+			$this->bSuccessUnInstallDeps	= &$_SESSION[$this->stepsSessionKey]['U_DEPS'];
+			$this->bSuccessInstallEvents	= &$_SESSION[$this->stepsSessionKey]['U_EVENTS'];
+			$this->bSuccessInstallTasks		= &$_SESSION[$this->stepsSessionKey]['U_EVENTS'];
+			$this->bSuccessInstallData		= &$_SESSION[$this->stepsSessionKey]['U_DATA'];
+		}
+	}
+
 	/**
 	 * @param int $maskTarget
 	 * @return bool
 	 */
-	public function isInstallationSuccess($maskTarget) {
+	public function isInstallationSuccess($maskTarget = self::ALL_TARGETS) {
 		$bSuccess = true;
 		if($maskTarget & self::DB) {
 			$bSuccess = $this->bSuccessInstallDB && $bSuccess;
@@ -104,7 +148,7 @@ class obx_sms extends CModule
 	 * @param int $maskTarget
 	 * @return bool
 	 */
-	public function isUnInstallationSuccess($maskTarget) {
+	public function isUnInstallationSuccess($maskTarget = self::ALL_TARGETS) {
 		$bSuccess = true;
 		if($maskTarget & self::DB) {
 			$bSuccess = $this->bSuccessUnInstallDB && $bSuccess;
@@ -153,23 +197,39 @@ class obx_sms extends CModule
 		}
 		return $bSuccess;
 	}
-	public function InstallFiles() {
+
+
+	public function InstallFiles($bSkipDepsInstall = false) {
 		$this->bSuccessInstallFiles = true;
 		if (is_file($this->installDir . "/install_files.php")) {
+			/** @noinspection PhpIncludeInspection */
 			require($this->installDir . "/install_files.php");
 		}
 		else {
 			$this->bSuccessInstallFiles = false;
 		}
+		if($this->bSuccessInstallFiles && !$bSkipDepsInstall) {
+			$this->InstallDeps();
+		}
 		return $this->bSuccessInstallFiles;
 	}
-	public function UnInstallFiles() {
+
+	public function UnInstallFiles($bSkipDepsUnInstall = false) {
 		$this->bSuccessUnInstallFiles = true;
-		if (is_file($this->installDir . "/uninstall_files.php")) {
-			require($this->installDir . "/uninstall_files.php");
+		if($this->bSuccessUnInstallFiles && !$bSkipDepsUnInstall) {
+			$this->UnInstallDeps();
 		}
-		else {
+		if(!$this->bSuccessUnInstallDeps) {
 			$this->bSuccessUnInstallFiles = false;
+		}
+		if($this->bSuccessUnInstallDeps) {
+			if (is_file($this->installDir . "/uninstall_files.php")) {
+				/** @noinspection PhpIncludeInspection */
+				require($this->installDir . "/uninstall_files.php");
+			}
+			else {
+				$this->bSuccessUnInstallFiles = false;
+			}
 		}
 		return $this->bSuccessUnInstallFiles;
 	}
@@ -228,31 +288,424 @@ class obx_sms extends CModule
 	public function UnInstallData() { $this->bSuccessUnInstallData = true; return $this->bSuccessUnInstallData; }
 
 
-	protected function getDepsList() {
+	public function InstallDeps() {
+		$arDepsList = $this->getDepsList();
+		$this->bSuccessInstallDeps = true;
+		foreach($arDepsList as $depModID => $depModClass) {
+			$depModInstallerFile = $this->bxModulesDir."/".$depModID."/install/index.php";
+			if( !IsModuleInstalled($depModID) ) {
+				if(file_exists($_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$depModID)) {
+					DeleteDirFilesEx($_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$depModID);
+				}
+				CopyDirFiles(
+					$_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$this->MODULE_ID.'/install/modules/'.$depModID,
+					$_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$depModID,
+					true, true
+					, false, 'update-'
+				);
+
+				if( !is_file($depModInstallerFile) ) {
+					$this->bSuccessInstallDeps = false;
+					$this->arErrors[] = 'Installer "'.$this->MODULE_ID.'": Dependency installer not found ('.BX_ROOT.'/modules/'.$depModID.')';
+				}
+				else {
+					/** @noinspection PhpIncludeInspection */
+					require_once $depModInstallerFile;
+					/** @var CModule $DepModInstaller */
+					$DepModInstaller = new $depModClass;
+					$bSuccess = true;
+					$bSuccess = $DepModInstaller->InstallFiles() && $bSuccess;
+					$bSuccess = $DepModInstaller->InstallDB() && $bSuccess;
+					$bSuccess = $DepModInstaller->InstallEvents() && $bSuccess;
+					$bSuccess = $DepModInstaller->InstallTasks() && $bSuccess;
+					if( method_exists($DepModInstaller, 'InstallData') ) {
+						$bSuccess = $DepModInstaller->InstallData() && $bSuccess;
+					}
+					if( $bSuccess ) {
+						if( !IsModuleInstalled($depModID) ) {
+							RegisterModule($depModID);
+						}
+					}
+					else {
+						if( method_exists($DepModInstaller, 'getErrors') ) {
+							$arInstallErrors = $DepModInstaller->getErrors();
+							foreach($arInstallErrors as $error) {
+								$this->arErrors[] = 'Installer "'.$this->MODULE_ID.'": Install dependency error '.$depModID.': '.$error;
+							}
+						}
+						$this->bSuccessInstallDeps = false;
+					}
+				}
+			}
+			else {
+				if( !is_file($depModInstallerFile) ) {
+					$this->bSuccessInstallDeps = false;
+					$this->arErrors[] = 'Installer "'.$this->MODULE_ID.'": Dependency installer not found ('.BX_ROOT.'/modules/'.$depModID.')';
+				}
+				else {
+					/** @noinspection PhpIncludeInspection */
+					require_once $depModInstallerFile;
+					/** @var CModule $DepModInstaller */
+					$DepModInstaller = new $depModClass;
+
+					$depInstallModulePath = $_SERVER['DOCUMENT_ROOT'].BX_ROOT
+						.'/modules/'.$this->MODULE_ID
+						.'/install/modules/'.$depModID
+					;
+					$depInstallModuleFolder = BX_ROOT
+						.'/modules/'.$this->MODULE_ID
+						.'/install/modules/'.$depModID
+					;
+					if( !is_dir($depInstallModulePath) ) {
+						continue;
+					}
+					$depInstallDir = opendir($depInstallModulePath);
+					$arUpdates = array();
+					while($depInsFSEntry = readdir($depInstallDir)) {
+						if($depInsFSEntry == '.' || $depInsFSEntry == '..') continue;
+						if( strpos($depInsFSEntry, 'update-') !== false
+							&& is_dir($depInstallModulePath.'/'.$depInsFSEntry)
+						) {
+							$arUpdateVersion = self::readVersion($depInsFSEntry);
+							$arCurrentModuleVersion = self::readVersion($DepModInstaller->MODULE_VERSION);
+							if(
+								!empty($arUpdateVersion) && !empty($arCurrentModuleVersion)
+								&& $arUpdateVersion['RAW_VERSION'] > $arCurrentModuleVersion['RAW_VERSION']
+							) {
+								$arUpdates[] = $depInsFSEntry;
+							}
+						}
+					}
+					closedir($depInstallDir);
+					if( !empty($arUpdates) ) {
+						uasort($arUpdates, array($this, 'compareVersions'));
+						$CUpdateClientPartner = new CUpdateClientPartner();
+						foreach($arUpdates as $updateFolder) {
+							$strErrors = '';
+							if( self::checkUpdaterScripts($depInstallModulePath.'/'.$updateFolder) ) {
+								$GLOBALS['__runAutoGenUpdater'] = true;
+								$CUpdateClientPartner->AddMessage2Log('Installer "'.$this->MODULE_ID.'": Run updater of Dependency '.$depModID);
+								$CUpdateClientPartner->__RunUpdaterScript(
+									$depInstallModulePath.'/'.$updateFolder.'/updater.dep.php',
+									$strErrors,
+									$depInstallModuleFolder.'/'.$updateFolder,
+									$depModID
+								);
+								unset($GLOBALS['__runAutoGenUpdater']);
+							}
+							else {
+								$strErrors .= 'Installer "'.$this->MODULE_ID.'": Dependency updater-script not found('.$depInstallModuleFolder.'/'.$updateFolder.'/updater.dep.php'.')'."\n";
+							}
+							if(strlen($strErrors)>0) {
+								$logError = 'Update dependency error '.$depModID.': '."\n".$strErrors;
+								$this->arErrors[] = $logError;
+								$CUpdateClientPartner->AddMessage2Log('Installer "'.$this->MODULE_ID.'": '.$logError);
+								$this->bSuccessInstallDeps = false;
+							}
+						}
+					}
+				}
+			}
+		}
+		$this->registerIfComplete();
+		return $this->bSuccessInstallDeps;
+	}
+
+	static protected function checkUpdaterScripts($updateDirPath) {
+		if( is_file($updateDirPath.'/__upd__.dep.php') ) {
+			$updateDir = opendir($updateDirPath);
+			while($fsEntry = readdir($updateDir)) {
+				if( is_file($updateDirPath.'/'.$fsEntry) && strpos($fsEntry, '__upd__.') !== false ) {
+					$rightUpdaterScriptName = $updateDirPath.'/'.str_replace('__upd__.', 'updater.', $fsEntry);
+					@rename($updateDirPath.'/'.$fsEntry, $rightUpdaterScriptName);
+				}
+			}
+			closedir($updateDir);
+			return true;
+		}
+		elseif( is_file($updateDirPath.'/updater.dep.php') ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public function UnInstallDeps() {
+		/** global CMain $APPLICATION */
+		global $APPLICATION;
+		$arDepsList = $this->getMyOwnDepsList();
+		$this->bSuccessUnInstallDeps = true;
+		$CUpdateClientPartner = new \CUpdateClientPartner();
+		$arBlockedSubModules = array();
+		if( !$this->checkUnInstallSubmodules($arBlockedSubModules) ) {
+			$strError = GetMessage('DVT_MODULE_CANT_DEL_INSTALLED_SUB_MOD', array(
+				'#MODULES_LIST#' => '"'.implode('", "', $arBlockedSubModules).'"'
+			));
+			$CUpdateClientPartner->AddMessage2Log('Installer "'.$this->MODULE_ID.'": '.$strError);
+			$APPLICATION->ThrowException($strError);
+			$this->bSuccessUnInstallDeps = false;
+		}
+		else {
+			foreach($arDepsList as $depModID => $depModClass) {
+				$CUpdateClientPartner->__DeleteDirFilesEx($_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$depModID);
+			}
+		}
+		$this->unRegisterIfComplete();
+		return $this->bSuccessUnInstallDeps;
+	}
+
+	protected function checkUnInstallSubmodules(&$arBlockedSubModules = null) {
+		$bCanUnInstall = true;
+		$arBlockedSubModules = array();
+		$arDepsList = $this->getMyOwnDepsList();
+		foreach($arDepsList as $depModID => $depModClass) {
+			if( IsModuleInstalled($depModID) ) {
+				/** @var CModule $SubModuleInstaller */
+				$SubModuleInstaller = $this->getSubModuleObject($depModID);
+				$arBlockedSubModules[$depModID] = $SubModuleInstaller->MODULE_NAME.' ('.$depModID.')';
+				$bCanUnInstall = false;
+			}
+		}
+		return $bCanUnInstall;
+	}
+
+	protected function getSubModuleObject($moduleID) {
+		$arDepsList = $this->getDepsList();
+		if( !array_key_exists($moduleID, $arDepsList) ) {
+			$this->arErrors[] = GetMessage('DVT_MODULE_IS_NOT_DEP', array(
+				'#MODULE#' => $moduleID
+			));
+			return null;
+		}
+		$moduleInstallerFile = $this->bxModulesDir."/".$moduleID."/install/index.php";
+		if( !is_file($moduleInstallerFile) ) {
+			$this->arErrors[] = GetMessage('DVT_SUBMODULE_INSTALLER_NOT_FOUND', array(
+				'#MODULE#' => $moduleID
+			));
+			return null;
+		}
+		/** @noinspection PhpIncludeInspection */
+		require_once $moduleInstallerFile;
+		$SubModule = new $arDepsList[$moduleID];
+		return $SubModule;
+	}
+
+	public function getDepsList() {
 		$arDepsList = array();
 		if( is_dir($this->installDir."/modules") && is_file($this->installDir.'/dependencies.php') ) {
+			/** @noinspection PhpIncludeInspection */
 			$arDepsList = require $this->installDir.'/dependencies.php';
 		}
 		return $arDepsList;
 	}
-	public function InstallDeps() { $this->bSuccessInstallDeps = true; return $this->bSuccessInstallDeps; }
-	public function UnInstallDeps() { $this->bSuccessUnInstallDeps = true; return $this->bSuccessUnInstallDeps; }
 
-
-	static public function getModuleCurDir(){
-		static $strPath2Lang = null;
-		if($strPath2Lang === null){
-			$strPath2Lang = str_replace("\\", "/", __FILE__);
-			// 18 = strlen of "/install/index.php"
-			$strPath2Lang = substr($strPath2Lang, 0, strlen($strPath2Lang)-18);
+	protected function getSuperModulesList() {
+		static $arSuperModulesList = null;
+		if($arSuperModulesList !== null) {
+			return $arSuperModulesList;
 		}
-		return $strPath2Lang;
+		$dirModules = opendir($this->bxModulesDir);
+		$arSuperModulesList = array();
+		while($moduleID = readdir($dirModules)) {
+			if($moduleID == '.' || $moduleID == '..' || $moduleID == $this->MODULE_ID) {
+				continue;
+			}
+			if( is_file($this->bxModulesDir.'/'.$moduleID.'/install/dependencies.php') ) {
+				$arSuperModulesList[$moduleID] = array(
+					'CLASS' => str_replace('.', '_', $moduleID),
+					'INSTALLER_FILE'  => $this->bxModulesDir.'/'.$moduleID.'/install/index.php',
+					'DEPS_LIST_FILE' => $this->bxModulesDir.'/'.$moduleID.'/install/dependencies.php'
+				);
+			}
+		}
+		return $arSuperModulesList;
 	}
 
-	static public function includeLangFile(){
+	public function getMyOwnDepsList() {
+		static $arDepsList = null;
+		if($arDepsList !== null) {
+			return $arDepsList;
+		}
+		$arDepsList = $this->getDepsList();
+		$arSuperModules = $this->getSuperModulesList();
+		$arUsedDeps = array();
+		foreach($arSuperModules as $superModuleID => &$arSuperMod) {
+			/** @noinspection PhpIncludeInspection */
+			$arSuperModuleDeps = include $arSuperMod['DEPS_LIST_FILE'];
+			if( array_key_exists($superModuleID, $arDepsList) ) {
+				continue;
+			}
+			if(!is_file($arSuperMod['INSTALLER_FILE'])) {
+				continue;
+			}
+			if( !IsModuleInstalled($superModuleID) ) {
+				continue;
+			}
+			if(!class_exists($arSuperMod['CLASS'])) {
+				/** @noinspection PhpIncludeInspection */
+				require $arSuperMod['INSTALLER_FILE'];
+			}
+			if(!class_exists($arSuperMod['CLASS'])) {
+				continue;
+			}
+			/** @var CModule $SuperModule */
+			$SuperModule = new $arSuperMod['CLASS'];
+			if(!($SuperModule instanceof CModule)) {
+				continue;
+			}
+			if($SuperModule->MODULE_ID != $superModuleID) {
+				continue;
+			}
+			$arUsedDeps = array_merge($arUsedDeps, $arSuperModuleDeps);
+		}
+		foreach($arUsedDeps as $depModID => $depModClass) {
+			if( array_key_exists($depModID, $arDepsList) ) {
+				unset($arDepsList[$depModID]);
+			}
+		}
+		return $arDepsList;
+	}
+
+	protected function IncludeStep($strTitle, $stepFilePath)
+	{
+		//define all global vars
+		global $__IncludeStepFileGlobalKeys;
+		global $__IncludeStepFileGlobalKeysIterator;
+		$__IncludeStepFileGlobalKeys = array_keys($GLOBALS);
+		for($__IncludeStepFileGlobalKeysIterator=0;
+			$__IncludeStepFileGlobalKeysIterator<count($__IncludeStepFileGlobalKeys);
+			$__IncludeStepFileGlobalKeysIterator++
+		) {
+			if(
+				$__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='i'
+				&& $__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='GLOBALS'
+				&& $__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='strTitle'
+				&& $__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='filepath'
+				&& $__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='__IncludeStepFileGlobalKeys'
+				&& $__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]!='__IncludeStepFileGlobalKeysIterator'
+			) {
+				global ${$__IncludeStepFileGlobalKeys[$__IncludeStepFileGlobalKeysIterator]};
+			}
+		}
+		unset($GLOBALS['__IncludeStepFileGlobalKeys']);
+		unset($GLOBALS['__IncludeStepFileGlobalKeysIterator']);
+		/** @noinspection PhpIncludeInspection */
+		include($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/include/prolog_admin_after.php");
+		/**
+		 * @var CMain $APPLICATION
+		 */
+		global $APPLICATION;
+		if(!empty($APPLICATION)) {
+			$APPLICATION->SetTitle($strTitle);
+		}
+		/** @noinspection PhpIncludeInspection */
+		include($stepFilePath);
+		/** @noinspection PhpIncludeInspection */
+		include($_SERVER["DOCUMENT_ROOT"].BX_ROOT."/modules/main/include/epilog_admin.php");
+		die();
+	}
+
+	protected function resetStepSuccess() {
+		$this->bSuccessInstallFiles		= false;
+		$this->bSuccessInstallDB		= false;
+		$this->bSuccessInstallDeps		= false;
+		$this->bSuccessInstallEvents	= false;
+		$this->bSuccessInstallTasks		= false;
+		$this->bSuccessInstallData		= false;
+
+		$this->bSuccessUnInstallFiles	= false;
+		$this->bSuccessUnInstallDB		= false;
+		$this->bSuccessUnInstallDeps	= false;
+		$this->bSuccessUnInstallEvents	= false;
+		$this->bSuccessUnInstallTasks	= false;
+		$this->bSuccessUnInstallData	= false;
+	}
+
+	public function registerModule() {
+		if( !IsModuleInstalled($this->MODULE_ID) ) {
+			RegisterModule($this->MODULE_ID);
+			$this->resetStepSuccess();
+		}
+	}
+	public function unRegisterModule() {
+		if( IsModuleInstalled($this->MODULE_ID) ) {
+			UnRegisterModule($this->MODULE_ID);
+			$this->resetStepSuccess();
+		}
+	}
+
+	public function registerIfComplete() {
+		if( !IsModuleInstalled($this->MODULE_ID)
+			&& $this->isInstallationSuccess(self::ALL_TARGETS)
+		) {
+			$this->registerModule();
+		}
+	}
+	public function unRegisterIfComplete() {
+		if( IsModuleInstalled($this->MODULE_ID)
+			&& $this->isUnInstallationSuccess(self::ALL_TARGETS)
+		) {
+			$this->unRegisterModule();
+		}
+	}
+
+	static public function getModuleCurDir() {
+		static $modCurDir = null;
+		if ($modCurDir === null) {
+			$modCurDir = str_replace("\\", "/", __FILE__);
+			// 18 = strlen of "/install/index.php"
+			$modCurDir = substr($modCurDir, 0, strlen($modCurDir) - 18);
+		}
+		return $modCurDir;
+	}
+
+	static public function includeLangFile() {
+		/** @noinspection PhpUnusedLocalVariableInspection */
 		global $MESS;
-		@include(GetLangFileName(self::getModuleCurDir()."/lang/", "/install/index.php"));
+		/** @noinspection PhpIncludeInspection */
+		@include(self::getModuleCurDir().'/lang/'.LANGUAGE_ID.'/install/index.php');
+	}
+
+	static public function readVersion($version) {
+		$regVersion = (
+			'~^'.(
+				'(?:'.(
+					'('.(
+						'(?:[a-zA-Z0-9]{1,}\.)?'
+						.'(?:[a-zA-Z0-9]{1,})'
+					).')'
+					.'\-'
+				).')?'
+				.'([\d]{1,2})\.([\d]{1,2})\.([\d]{1,2})'.'(?:\-r([\d]{1,4}))?'
+			).'$~'
+		);
+		$arVersion = array();
+		if( preg_match($regVersion, $version, $arMatches) ) {
+			$arVersion['NAME'] = $arMatches[1];
+			$arVersion['MAJOR'] = $arMatches[2];
+			$arVersion['MINOR'] = $arMatches[3];
+			$arVersion['FIXES'] = $arMatches[4];
+			$arVersion['REVISION'] = 0;
+			$arVersion['VERSION'] = $arMatches[2].'.'.$arMatches[3].'.'.$arMatches[4];
+			if($arMatches[5]) {
+				$arVersion['REVISION'] = $arMatches[5];
+				$arVersion['VERSION'] .= '-r'.$arVersion['REVISION'];
+			}
+			$arVersion['RAW_VERSION'] =
+				($arVersion['MAJOR'] * 1000000000)
+				+ ($arVersion['MINOR'] * 10000000)
+				+ ($arVersion['FIXES'] * 10000)
+				+ ($arVersion['REVISION'])
+			;
+		}
+		return $arVersion;
+	}
+
+	static public function compareVersions($versionA, $versionB) {
+		$arVersionA = self::readVersion($versionA);
+		$arVersionB = self::readVersion($versionB);
+		if($arVersionA['RAW_VERSION'] == $arVersionB['RAW_VERSION']) return 0;
+		return ($arVersionA['RAW_VERSION'] < $arVersionB['RAW_VERSION'])? -1 : 1;
 	}
 }
-
-obx_sms::includeLangFile();
