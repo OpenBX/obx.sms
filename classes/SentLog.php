@@ -72,6 +72,7 @@ class SentLogDBS extends DBSimple
 			'SENT_TIME'			=> self::FLD_T_NO_CHECK,
 			'DELIVERED_TIME'	=> self::FLD_T_NO_CHECK
 		);
+		$this->_getEntityEvents();
 	}
 }
 

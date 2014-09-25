@@ -101,23 +101,38 @@ class IqSms extends Provider {
 	public function getBalance(&$arBalanceData) {
 		/** @global \CMain $APPLICATION */
 		global $APPLICATION;
-		$request = new Request(self::BALANCE_URL.'?'.http_build_query(array(
-			'login' => ''.$this->_Settings->getOption('LOGIN'),
-			'password' => ''.$this->_Settings->getOption('PASS')
-		)));
+
+		$arPost = array(
+			'login' => $this->_Settings->getOption('LOGIN'),
+			'password' => $this->_Settings->getOption('PASS')
+		);
+
+		$request = new Request(self::BALANCE_URL);
+
+		//$this->setPostJson($arPost, $request);
+		$request->setPost(json_encode($arPost));
+
 		$result = $request->send();
-		if(empty($result)) {
-			$this->addError(GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1'));
+
+		if( $result ) {
+			$arResult = json_decode($result);
+			if( $arResult['status'] == 'ok' ) {
+				//TODO: Вернуть нормальный массив
+				return $arResult['balance'][0]['balance'] . ' ' . $arResult['balance'][0]['type'];
+			}
+			else {
+				$arBalanceData['error'] = '';
+				if( array_key_exists('description', $arResult) ) {
+					$arBalanceData['error'] = GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array('#ERROR#' => $arResult['description']));
+				}
+				$this->addError($arBalanceData['error']);
+				return false;
+			}
+		}
+		else {
 			$arBalanceData['error'] = GetMessage('OBX_SMS_IQSMS_SEND_ERROR_1');
+			$this->addError($arBalanceData['error']);
 			return false;
 		}
-		list($error, $balance) = explode('=', $result);
-		if(null === $balance) {
-			$error = GetMessage('OBX_SMS_IQSMS_SEND_ERROR_2', array('#ERROR#' => $error));
-			$this->addError($error);
-			$arBalanceData['error'] = $error;
-			return false;
-		}
-		return $balance;
 	}
 }
