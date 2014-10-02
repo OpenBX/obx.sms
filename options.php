@@ -89,7 +89,7 @@ final class OBX_SMS_ProviderSettingsTab extends SettingsTab {
 		<tr>
 			<td><?=GetMessage('OBX_SMS_OPTIONS_PROV_BALANCE')?></td>
 			<td>
-				<button class="obx-sms get-balance" data-provider-id="<?=$this->providerID?>"><?=GetMessage('OBX_SMS_OPTIONS_PROV_BALANCE_GET')?></button>
+				<button onclick="return false;" class="obx-sms get-balance" data-provider-id="<?=$this->providerID?>"><?=GetMessage('OBX_SMS_OPTIONS_PROV_BALANCE_GET')?></button>
 			</td>
 		</tr>
 		<?endif;
