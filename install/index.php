@@ -280,12 +280,35 @@ class obx_sms extends CModule
 		}
 	}
 
-	public function InstallEvents() { $this->bSuccessInstallEvents = true; return $this->bSuccessInstallEvents; }
-	public function UnInstallEvents() { $this->bSuccessUnInstallEvents = true; return $this->bSuccessUnInstallEvents; }
-	public function InstallTasks() { $this->bSuccessInstallTasks = true; return $this->bSuccessInstallTasks; }
-	public function UnInstallTasks() { $this->bSuccessUnInstallTasks = true; return $this->bSuccessUnInstallTasks; }
-	public function InstallData() { $this->bSuccessInstallData = true; return $this->bSuccessInstallData; }
-	public function UnInstallData() { $this->bSuccessUnInstallData = true; return $this->bSuccessUnInstallData; }
+	public function InstallEvents() {
+		$this->bSuccessInstallEvents = true;
+		return $this->bSuccessInstallEvents;
+	}
+	public function UnInstallEvents() {
+		$this->bSuccessUnInstallEvents = true;
+		if( $this->registerIfComplete() ) return true;
+		return $this->bSuccessUnInstallEvents;
+	}
+	public function InstallTasks() {
+		$this->bSuccessInstallTasks = true;
+		if( $this->registerIfComplete() ) return true;
+		return $this->bSuccessInstallTasks;
+	}
+	public function UnInstallTasks() {
+		$this->bSuccessUnInstallTasks = true;
+		if( $this->unRegisterIfComplete() ) return true;
+		return $this->bSuccessUnInstallTasks;
+	}
+	public function InstallData() {
+		$this->bSuccessInstallData = true;
+		if( $this->registerIfComplete() ) return true;
+		return $this->bSuccessInstallData;
+	}
+	public function UnInstallData() {
+		$this->bSuccessUnInstallData = true;
+		if( $this->unRegisterIfComplete() ) return true;
+		return $this->bSuccessUnInstallData;
+	}
 
 
 	public function InstallDeps() {
@@ -453,7 +476,7 @@ class obx_sms extends CModule
 				$CUpdateClientPartner->__DeleteDirFilesEx($_SERVER['DOCUMENT_ROOT'].BX_ROOT.'/modules/'.$depModID);
 			}
 		}
-		$this->unRegisterIfComplete();
+		if( $this->unRegisterIfComplete() ) return true;
 		return $this->bSuccessUnInstallDeps;
 	}
 
@@ -638,20 +661,22 @@ class obx_sms extends CModule
 	}
 
 	public function registerIfComplete() {
-		if( !IsModuleInstalled($this->MODULE_ID)
-			&& $this->isInstallationSuccess(self::ALL_TARGETS)
-		) {
-			$this->registerModule();
+		if( $this->isInstallationSuccess(self::ALL_TARGETS) ) {
+			if( !IsModuleInstalled($this->MODULE_ID) ) {
+				$this->registerModule();
+			}
 			return true;
 		}
 		return false;
 	}
 	public function unRegisterIfComplete() {
-		if( IsModuleInstalled($this->MODULE_ID)
-			&& $this->isUnInstallationSuccess(self::ALL_TARGETS)
-		) {
-			$this->unRegisterModule();
+		if( $this->isUnInstallationSuccess(self::ALL_TARGETS) ) {
+			if(IsModuleInstalled($this->MODULE_ID)) {
+				$this->unRegisterModule();
+			}
+			return true;
 		}
+		return false;
 	}
 
 	static public function getModuleCurDir() {
