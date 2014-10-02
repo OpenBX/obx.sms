@@ -10,7 +10,6 @@ if(!defined("BX_ROOT")) {
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/ByteHand.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/EMailProvider.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/IqSms.php");
-DeleteDirFilesEx("/bitrix/php_interface/obx.sms/KompeitoSms.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/LetsAds.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/LittleSms.php");
 DeleteDirFilesEx("/bitrix/php_interface/obx.sms/SmsBliss.php");

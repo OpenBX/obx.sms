@@ -28,7 +28,6 @@ if(!function_exists("OBX_CopyDirFilesEx")) {
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/ByteHand.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/EMailProvider.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/IqSms.php");
-DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/KompeitoSms.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/LetsAds.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/LittleSms.php");
 DeleteDirFilesEx("/bitrix/modules/obx.sms/install/php_interface/obx.sms/SmsBliss.php");
@@ -42,7 +41,6 @@ if( ! is_dir($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_inte
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/ByteHand.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/EMailProvider.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/IqSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
-OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/KompeitoSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/LetsAds.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/LittleSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/SmsBliss.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/", true, true);

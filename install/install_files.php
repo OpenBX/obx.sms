@@ -28,7 +28,6 @@ if(!function_exists("OBX_CopyDirFilesEx")) {
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/ByteHand.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/EMailProvider.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/IqSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
-OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/KompeitoSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/LetsAds.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/LittleSms.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
 OBX_CopyDirFilesEx($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/obx.sms/install/php_interface/obx.sms/SmsBliss.php", $_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/obx.sms/", true, true);
