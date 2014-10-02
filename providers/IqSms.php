@@ -23,7 +23,7 @@ class IqSms extends Provider {
 	const ERROR_EMPTY_RESPONSE = 'errorEmptyResponse';
 
 	const SEND_URL = 'http://gate.iqsms.ru/send/';
-	const BALANCE_URL = 'http://gate.iqsms.ru/credits/';
+	const BALANCE_URL = 'http://json.gate.iqsms.ru/credits/';
 
 
 	public function __construct() {
@@ -108,17 +108,22 @@ class IqSms extends Provider {
 		);
 
 		$request = new Request(self::BALANCE_URL);
+		// http-авторизация
+		//curl_setopt($request->getCurlHandler(), CURLOPT_USERPWD, $arPost['login'].':'.$arPost['password']);
 
 		//$this->setPostJson($arPost, $request);
 		$request->setPost(json_encode($arPost));
 
 		$result = $request->send();
-
+		if( $request->getStatus() != '200') {
+			$arBalanceData['error'] = $result;
+			return false;
+		}
 		if( $result ) {
-			$arResult = json_decode($result);
+			$arResult = json_decode($result, true);
 			if( $arResult['status'] == 'ok' ) {
 				//TODO: Вернуть нормальный массив
-				return $arResult['balance'][0]['balance'] . ' ' . $arResult['balance'][0]['type'];
+				return $arResult['credits'];
 			}
 			else {
 				$arBalanceData['error'] = '';

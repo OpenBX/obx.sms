@@ -407,7 +407,9 @@ class obx_sms extends CModule
 				}
 			}
 		}
-		$this->registerIfComplete();
+		if( $this->registerIfComplete() ) {
+			return true;
+		}
 		return $this->bSuccessInstallDeps;
 	}
 
@@ -640,7 +642,9 @@ class obx_sms extends CModule
 			&& $this->isInstallationSuccess(self::ALL_TARGETS)
 		) {
 			$this->registerModule();
+			return true;
 		}
+		return false;
 	}
 	public function unRegisterIfComplete() {
 		if( IsModuleInstalled($this->MODULE_ID)
